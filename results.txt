@@ -1,99 +1,136 @@
---- PROCESS STARTED: GENERATING greedy_solution
+--- PROCESS STARTED: GENERATING greedy_solution_final_soln1.xlsx ---
 Demand Points: 10400 | Total Weight: 47,845
 Camera Locations: 10530
 Computing Coverage Matrix...
-Optimizing for 300 cameras using RCL=5...
+Optimizing for 100 cameras using RCL=5...
 
-===============================================
- SCENARIO ANALYSIS: COVERAGE FOR greedy_solutio
-===============================================
+==================================================
+ SCENARIO ANALYSIS: COVERAGE FOR greedy_solution_final_soln1.xlsx
+==================================================
 Cameras    | Coverage %      | Gain
------------------------------------------------
+--------------------------------------------------
 10         | 3.75  %         | +179
-50         | 18.64 %         | +175
-100        | 35.16 %         | +140
-150        | 48.56 %         | +116
-200        | 59.86 %         | +102
-250        | 69.60 %         | +88
-300        | 77.90 %         | +71
------------------------------------------------
-FINAL: 300 cams | 77.90% | 65.96s
-===============================================
+50         | 18.70 %         | +175
+100        | 35.35 %         | +140
+--------------------------------------------------
+FINAL: 100 cams | 35.35% | 64.97s
+==================================================
 
 Saving to greedy_solution_final_soln1.xlsx...
 Excel file created successfully.
 Curve saved: greedy_growth_curve_soln1.png
 Heatmap saved: greedy_heatmap_soln1.png
---- PROCESS STARTED: GENERATING greedy_solution
+COVERAGE: 16,915 / 47,845 (35.35%)
+--- PROCESS STARTED: GENERATING greedy_solution_final_soln2.xlsx ---
 Demand Points: 10400 | Total Weight: 47,845
 Camera Locations: 10530
 Computing Coverage Matrix...
-Optimizing for 300 cameras using RCL=5...
+Optimizing for 100 cameras using RCL=5...
 
-===============================================
- SCENARIO ANALYSIS: COVERAGE FOR greedy_solutio
-===============================================
+==================================================
+ SCENARIO ANALYSIS: COVERAGE FOR greedy_solution_final_soln2.xlsx
+==================================================
 Cameras    | Coverage %      | Gain
------------------------------------------------
+--------------------------------------------------
 10         | 3.75  %         | +179
-50         | 18.68 %         | +175
-100        | 35.41 %         | +142
-150        | 48.54 %         | +115
-200        | 59.78 %         | +104
-250        | 69.47 %         | +87
-300        | 77.82 %         | +72
------------------------------------------------
-FINAL: 300 cams | 77.82% | 71.98s
-===============================================
+50         | 18.69 %         | +175
+100        | 35.36 %         | +141
+--------------------------------------------------
+FINAL: 100 cams | 35.36% | 73.90s
+==================================================
 
 Saving to greedy_solution_final_soln2.xlsx...
 Excel file created successfully.
 Curve saved: greedy_growth_curve_soln2.png
 Heatmap saved: greedy_heatmap_soln2.png
---- PROCESS STARTED: GENERATING greedy_solution
+COVERAGE: 16,920 / 47,845 (35.36%)
+--- PROCESS STARTED: GENERATING greedy_solution_final_soln3.xlsx ---
 Demand Points: 10400 | Total Weight: 47,845
 Camera Locations: 10530
 Computing Coverage Matrix...
-Optimizing for 300 cameras using RCL=5...
+Optimizing for 100 cameras using RCL=5...
 
-===============================================
- SCENARIO ANALYSIS: COVERAGE FOR greedy_solutio
-===============================================
+==================================================
+ SCENARIO ANALYSIS: COVERAGE FOR greedy_solution_final_soln3.xlsx
+==================================================
 Cameras    | Coverage %      | Gain
------------------------------------------------
+--------------------------------------------------
 10         | 3.75  %         | +179
 50         | 18.70 %         | +175
-100        | 35.27 %         | +140
-150        | 48.50 %         | +116
-200        | 59.82 %         | +100
-250        | 69.55 %         | +87
-300        | 77.96 %         | +71
------------------------------------------------
-FINAL: 300 cams | 77.96% | 56.08s
+100        | 35.43 %         | +144
+--------------------------------------------------
+==================================================
 
-Saving to greedy_solution_final_soln3.xlsx...
+Excel file created successfully.
 Curve saved: greedy_growth_curve_soln3.png
 Heatmap saved: greedy_heatmap_soln3.png
+COVERAGE: 16,950 / 47,845 (35.43%)
 
---- PROCESS STARTED ---
-Demand Points: 10400 | Total Weight: 47,844.600
-Total Candidates Generated: 42120
-Computing Coverage Matrix...
---- Loading Initial Solution from greedy_soluti
-Loaded 300 cameras from file.
+
+--- Loading Initial Solution from greedy_solution_final_soln1.xlsx ---
+Loaded 100 cameras from file.
 Reconstructing coverage state...
-Initial Z: 37,271.9000 (77.90%)
+Initial Z: 16,914.7000 (35.35%)
 
 --- Starting 1-Swap Local Search ---
-  It 1: Out 33115 / In 1424 | Gain +1.0000 | Z: 37,272.9000
-  It 2: Out 30122 / In 33733 | Gain +1.4000 | Z: 38,672.9000
-  No further improvements found. Local Optimum is found.
+  No further improvements found. Local Optimum reached.
 ----------------------------------------
-INITIAL Z:      37,271.9000 (77.90%)
-FINAL Z:        37,274.3000 (77.91%)
-IMPROVEMENT:    +2.4000
-TOTAL RUN TIME: 1942.83 seconds
+INITIAL Z:      16,914.7000 (35.35%)
+FINAL Z:        16,914.7000 (35.35%)
+IMPROVEMENT:    +0.0000
+TOTAL RUN TIME: 518.01 seconds
 ----------------------------------------
 Excel saved: local_search_soln1.xlsx
 Heatmap saved: local_search_heatmap_soln1.png
-Trajectory plot saved: local_search_plot_soln1.
+Trajectory plot saved: local_search_plot_soln1.png
+
+--- PROCESS STARTED ---
+Demand Points: 10400 | Total Weight: 47,844.6000
+Total Candidates Generated: 42120
+Computing Coverage Matrix...
+--- Loading Initial Solution from greedy_solution_final_soln2.xlsx ---
+Loaded 100 cameras from file.
+Reconstructing coverage state...
+Initial Z: 16,920.0000 (35.36%)
+
+--- Starting 1-Swap Local Search ---
+  It 1: Out 14137 / In 33215 | Gain +0.4000 | Z: 16,920.4000
+  It 2: Out 36459 / In 14137 | Gain +0.6000 | Z: 16,921.0000
+  It 3: Out 24447 / In 25019 | Gain +2.0000 | Z: 16,923.0000
+  No further improvements found. Local Optimum reached.
+----------------------------------------
+INITIAL Z:      16,920.0000 (35.36%)
+FINAL Z:        16,923.0000 (35.37%)
+IMPROVEMENT:    +3.0000
+TOTAL RUN TIME: 851.82 seconds
+----------------------------------------
+Excel saved: local_search_soln2.xlsx
+Heatmap saved: local_search_heatmap_soln2.png
+Trajectory plot saved: local_search_plot_soln2.png
+--- PROCESS STARTED ---
+Demand Points: 10400 | Total Weight: 47,844.6000
+Total Candidates Generated: 42120
+Computing Coverage Matrix...
+--- Loading Initial Solution from greedy_solution_final_soln3.xlsx ---
+Loaded 100 cameras from file.
+Reconstructing coverage state...
+Initial Z: 16,949.7000 (35.43%)
+
+--- Starting 1-Swap Local Search ---
+  It 1: Out 25417 / In 32543 | Gain +6.0000 | Z: 16,955.7000
+  It 2: Out 17514 / In 25417 | Gain +1.4000 | Z: 16,957.1000
+  It 3: Out 29180 / In 19440 | Gain +0.4000 | Z: 16,957.5000
+  No further improvements found. Local Optimum reached.
+----------------------------------------
+INITIAL Z:      16,949.7000 (35.43%)
+FINAL Z:        16,957.5000 (35.44%)
+IMPROVEMENT:    +7.8000
+TOTAL RUN TIME: 1008.79 seconds
+----------------------------------------
+Excel saved: local_search_soln3.xlsx
+Heatmap saved: local_search_heatmap_soln3.png
+Trajectory plot saved: local_search_plot_soln3.png
+
+All experiments were conducted on a computer running Windows 10 with an Intel64 Family 6 Model 61 Stepping 4, GenuineIntel processor, 8 GB RAM, using Python 3.11.2.
+
+All experiments were conducted on a computer running Windows 10 with an Intel64 Family 6 Model 165 Stepping 2, GenuineIntel processor, 17.04 GB RAM, using Python 3.9.12.

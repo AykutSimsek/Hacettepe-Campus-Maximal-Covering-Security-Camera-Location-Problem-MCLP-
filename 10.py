@@ -626,13 +626,6 @@ print(f"Trajectory plot saved: {OUTPUT_PLOT_FILE}")
 
 
 
-
-
-
-
-
-
-
 # ==============================
 # 1. SETTINGS
 # ==============================

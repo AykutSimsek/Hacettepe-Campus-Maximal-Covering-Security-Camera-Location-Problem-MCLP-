@@ -18,10 +18,10 @@ CAMERA_SHEET = "camera"
 OUTPUT_IMAGE_FILE = "greedy_heatmap_soln1.png"
 OUTPUT_CURVE_FILE = "greedy_growth_curve_soln1.png"
 OUTPUT_EXCEL_FILE = "greedy_solution_final_soln1.xlsx"  # <--- As requested
-HEATMAP_TITLE = "Solution 1: Randomized Greedy (300 Cameras)"
+HEATMAP_TITLE = "Solution 1: Randomized Greedy (100 Cameras)"
 
 # Optimization Parameters
-CAMERA_COUNT_P = 300  # <--- Run for exactly 300 cameras
+CAMERA_COUNT_P = 100  # <--- Run for exactly 100 cameras
 CAMERA_RADIUS = 5
 FOV_HALF_ANGLE = 45
 
@@ -321,10 +321,10 @@ CAMERA_SHEET = "camera"
 OUTPUT_IMAGE_FILE = "greedy_heatmap_soln2.png"
 OUTPUT_CURVE_FILE = "greedy_growth_curve_soln2.png"
 OUTPUT_EXCEL_FILE = "greedy_solution_final_soln2.xlsx"  # <--- As requested
-HEATMAP_TITLE = "Solution 2: Randomized Greedy (300 Cameras)"
+HEATMAP_TITLE = "Solution 2: Randomized Greedy (100 Cameras)"
 
 # Optimization Parameters
-CAMERA_COUNT_P = 300  # <--- Run for exactly 300 cameras
+CAMERA_COUNT_P = 100  # <--- Run for exactly 100 cameras
 CAMERA_RADIUS = 5
 FOV_HALF_ANGLE = 45
 
@@ -620,10 +620,10 @@ CAMERA_SHEET = "camera"
 OUTPUT_IMAGE_FILE = "greedy_heatmap_soln3.png"
 OUTPUT_CURVE_FILE = "greedy_growth_curve_soln3.png"
 OUTPUT_EXCEL_FILE = "greedy_solution_final_soln3.xlsx"  # <--- As requested
-HEATMAP_TITLE = "Solution 3: Randomized Greedy (300 Cameras)"
+HEATMAP_TITLE = "Solution 3: Randomized Greedy (100 Cameras)"
 
 # Optimization Parameters
-CAMERA_COUNT_P = 300  # <--- Run for exactly 300 cameras
+CAMERA_COUNT_P = 100  # <--- Run for exactly 100 cameras
 CAMERA_RADIUS = 5
 FOV_HALF_ANGLE = 45
 
