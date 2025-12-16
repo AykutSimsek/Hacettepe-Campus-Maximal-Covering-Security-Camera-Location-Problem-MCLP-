@@ -1,0 +1,154 @@
+HOW TO RUN THE CODE AND DATA EXAMPLES
+====================================
+
+This document explains how to run main.py and describes each processing stage
+in the exact order implemented in the code.
+
+1. REQUIREMENTS
+---------------
+Software:
+- Python 3.9 or higher
+
+Required Python libraries:
+- numpy
+- pandas
+- matplotlib
+- scipy
+- pillow (PIL)
+
+Install required libraries using:
+pip install numpy pandas matplotlib scipy pillow openpyxl
+
+
+2. PROJECT DIRECTORY STRUCTURE
+------------------------------
+Ensure that all files are located in the same directory as main.py.
+
+your_project_folder/
+|
+├── main.py
+├── new.xlsx
+├── kroki.jpg
+├── how_to_run.txt
+|
+└── (Generated automatically after execution)
+    ├── grid_kroki.png
+    ├── demand_points.xlsx
+    ├── camera_points.xlsx
+    ├── grid_locations_with_strips.png
+    ├── campus_heatmap.png
+    ├── grid_heatmap.png
+    ├── Coverage_Matrix.csv
+    |
+    ├── [GREEDY OPTIMIZATION OUTPUTS - 3 RUNS]
+    ├── greedy_solution_final_soln1.xlsx
+    ├── greedy_heatmap_soln1.png
+    ├── greedy_heatmap_gridview_soln1.png
+    ├── greedy_solution_final_soln2.xlsx
+    ├── greedy_heatmap_soln2.png
+    ├── greedy_heatmap_gridview_soln2.png
+    ├── greedy_solution_final_soln3.xlsx
+    ├── greedy_heatmap_soln3.png
+    ├── greedy_heatmap_gridview_soln3.png
+    |
+    └── [LOCAL SEARCH IMPROVEMENT OUTPUTS]
+    ├── local_search_soln1.xlsx
+    ├── local_search_heatmap_soln1.png
+    ├── local_search_plot_soln1.png
+    ├── local_search_soln2.xlsx
+    ├── local_search_heatmap_soln2.png
+    ├── local_search_plot_soln2.png
+    ├── local_search_soln3.xlsx
+    ├── local_search_heatmap_soln3.png
+    └── local_search_plot_soln3.png
+
+
+3. INPUT DATA FILES
+------------------
+
+3.1 new.xlsx
+Main input Excel file with two sheets:
+
+Sheet: demand
+- x      : grid column index
+- y      : grid row index
+- weight : demand weight
+
+Sheet: camera
+- x : grid column index
+- y : grid row index
+
+3.2 kroki.jpg
+Background image of the Hacettepe University campus used for visualization.
+
+
+4. RUNNING THE CODE
+------------------
+Open a terminal in the project directory and run:
+
+python main.py
+
+The script runs all steps sequentially. Execution may take several minutes depending on the hardware, specifically during the Local Search phases.
+
+
+5. EXECUTION FLOW AND OUTPUTS
+----------------------------
+
+--- PRE-PROCESSING & VISUALIZATION ---
+
+STEP 1 – Grid Overlay Generation
+Creates an 80x130 grid over the campus image.
+Output: grid_kroki.png
+
+STEP 2 – Demand Point Coordinate Conversion
+Converts grid-based demand points into metric coordinates.
+Output: demand_points.xlsx
+
+STEP 3 – Camera Candidate Generation
+Generates camera candidate locations (4 orientations per location).
+Output: camera_points.xlsx
+
+STEP 4 – Grid-Based Visualization
+Displays demand points and camera locations with coordinate strips.
+Output: grid_locations_with_strips.png
+
+STEP 5 & 6 – Demand Heatmaps
+Visualizes demand intensity on the campus image and strictly on the grid.
+Outputs: 
+- campus_heatmap.png
+- grid_heatmap.png
+
+STEP 7 – Coverage Matrix Construction
+Computes coverage between camera-orientation pairs and demand points for reference.
+Output: Coverage_Matrix.csv
+
+--- PHASE 1: RANDOMIZED GREEDY OPTIMIZATION ---
+
+STEP 8 – Randomized Greedy (3 Independent Runs)
+Runs the Greedy algorithm 3 separate times using RCL (Restricted Candidate List) to generate distinct initial solutions.
+Outputs (for Soln 1, 2, and 3):
+- greedy_solution_final_soln{X}.xlsx (Selected cameras list)
+- greedy_heatmap_soln{X}.png (Visual coverage on map)
+
+STEP 9 – Grid View Visualization for Greedy Solutions
+Reloads the 3 generated solutions and creates precise grid-based heatmaps for verification.
+Outputs:
+- greedy_heatmap_gridview_soln1.png
+- greedy_heatmap_gridview_soln2.png
+- greedy_heatmap_gridview_soln3.png
+
+--- PHASE 2: LOCAL SEARCH (IMPROVEMENT) ---
+
+STEP 10 – Local Search Optimization (1-Swap)
+Takes the 3 greedy solutions generated in Step 8 and attempts to improve them by swapping selected cameras with unselected ones to increase total coverage weight.
+Outputs (for Soln 1, 2, and 3):
+- local_search_soln{X}.xlsx (Final optimized camera list)
+- local_search_heatmap_soln{X}.png (Final optimized heatmap)
+- local_search_plot_soln{X}.png (Trajectory plot showing improvement over iterations)
+
+
+6. NOTES
+--------
+- The "Greedy Optimization" step uses a randomized approach (RCL), so results (Soln 1, 2, 3) will differ from each other, providing a pool of diverse starting points for the Local Search.
+- "Local Search" is computationally intensive as it checks every possible swap for improvement.
+- Do not rename intermediate files (e.g., greedy_solution_final_soln1.xlsx) while the script is running, as subsequent steps depend on them.
