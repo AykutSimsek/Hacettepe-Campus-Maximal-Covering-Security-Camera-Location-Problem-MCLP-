@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 # --- SETTINGS ---
-INPUT_FILE = 'new.xlsx'
+INPUT_FILE = 'Final_Dataset_MCLP.xlsx'
 CAMERA_SHEET = 'camera'
 DEMAND_SHEET = 'demand'
 OUTPUT_FILE = 'camera_points.xlsx'

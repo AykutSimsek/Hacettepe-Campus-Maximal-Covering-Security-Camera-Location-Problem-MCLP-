@@ -9,7 +9,7 @@ from PIL import Image
 # SETTINGS
 # ==============================
 MAP_IMAGE_FILE = "kroki.jpg"
-EXCEL_FILE = "new.xlsx"
+EXCEL_FILE = "Final_Dataset_MCLP.xlsx"
 DEMAND_SHEET = "demand"
 OUTPUT_IMAGE_FILE = "campus_heatmap.png"
 HEATMAP_TITLE = "Campus Demand Distribution Heatmap"

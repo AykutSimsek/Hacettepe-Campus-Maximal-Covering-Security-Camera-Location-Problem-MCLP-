@@ -113,7 +113,7 @@ print("-" * 30)
 
 
 # --- SETTINGS ---
-INPUT_FILE = 'new.xlsx'
+INPUT_FILE = 'Final_Dataset_MCLP.xlsx'
 SHEET_NAME = 'demand'
 OUTPUT_FILE = 'demand_points.xlsx'
 GRID_SIZE = 10  # meters
@@ -176,7 +176,7 @@ print(f"\nFile successfully saved: {OUTPUT_FILE}")
 
 
 # --- SETTINGS ---
-INPUT_FILE = 'new.xlsx'
+INPUT_FILE = 'Final_Dataset_MCLP.xlsx'
 CAMERA_SHEET = 'camera'
 DEMAND_SHEET = 'demand'
 OUTPUT_FILE = 'camera_points.xlsx'
@@ -254,7 +254,7 @@ print(f"\nFile successfully saved (without weight column): {OUTPUT_FILE}")
 # SETTINGS
 # ==============================
 MAP_IMAGE_FILE = "kroki.jpg"
-EXCEL_FILE = "new.xlsx"
+EXCEL_FILE = "Final_Dataset_MCLP.xlsx"
 DEMAND_SHEET = "demand"
 CAMERA_SHEET = "camera"
 OUTPUT_IMAGE_FILE = "grid_locations_with_strips.png"
@@ -411,7 +411,7 @@ print(f"Map with strips and outside legend saved to: {OUTPUT_IMAGE_FILE}")
 # SETTINGS
 # ==============================
 MAP_IMAGE_FILE = "kroki.jpg"
-EXCEL_FILE = "new.xlsx"
+EXCEL_FILE = "Final_Dataset_MCLP.xlsx"
 DEMAND_SHEET = "demand"
 OUTPUT_IMAGE_FILE = "campus_heatmap.png"
 HEATMAP_TITLE = "Campus Demand Distribution Heatmap"
@@ -558,7 +558,7 @@ print(f"Output saved as: {OUTPUT_IMAGE_FILE}")
 # ==============================
 # SETTINGS
 # ==============================
-EXCEL_FILE = "new.xlsx"
+EXCEL_FILE = "Final_Dataset_MCLP.xlsx"
 DEMAND_SHEET = "demand"
 OUTPUT_IMAGE_FILE = "grid_heatmap.png"
 HEATMAP_TITLE = "Campus Demand Distribution Heatmap (Grid View)"
@@ -690,183 +690,34 @@ print(f"File saved: {OUTPUT_IMAGE_FILE}")
 
 
 
-# --- SETTINGS ---
-DEMAND_FILE = 'demand_points.xlsx'     # Demand points (rows)
-CAMERA_FILE = 'camera_points.xlsx'     # Candidate camera points (columns)
-OUTPUT_COVERAGE_FILE = 'Coverage_Matrix.csv'
-
-# Coverage parameters
-R = 50.0        # Coverage radius (meters)
-FOV = 90.0      # Field of View (degrees)
-# Since FOV = 90°, it is reasonable to use four main orientations
-CAMERA_ANGLES = [0, 90, 180, 270]
-
-print("--- PROCESS STARTED ---")
-
-# --- 1. LOAD DATA ---
-try:
-    # Demand data
-    df_demand = pd.read_excel(DEMAND_FILE)
-    # Standardize column names (lowercase, no spaces)
-    df_demand.columns = [c.strip().lower() for c in df_demand.columns]
-
-    # Camera candidate data
-    df_camera = pd.read_excel(CAMERA_FILE)
-    df_camera.columns = [c.strip().lower() for c in df_camera.columns]
-
-    print(f"Demand points loaded: {len(df_demand)}")
-    print(f"Camera candidates loaded: {len(df_camera)}")
-
-except FileNotFoundError as e:
-    print(f"ERROR: File not found - {e}")
-    exit()
-
-# --- 2. FAST COMPUTATION USING NUMPY ---
-print("Computing coverage matrix (vectorized operations)...")
-
-# Extract coordinates as NumPy arrays (coord_x, coord_y are in meters)
-# Demand points (M points)
-d_x = df_demand['coord_x'].values
-d_y = df_demand['coord_y'].values
-
-# Store demand IDs (use point_id if available, otherwise DataFrame index)
-d_ids = (
-    df_demand['point_id'].values
-    if 'point_id' in df_demand.columns
-    else df_demand.index.values
-)
-
-# Camera candidate points (N points)
-c_x = df_camera['coord_x'].values
-c_y = df_camera['coord_y'].values
-
-# Store camera IDs
-c_ids = (
-    df_camera['candidate_id'].values
-    if 'candidate_id' in df_camera.columns
-    else df_camera.index.values
-)
-
-# --- A. DISTANCE CHECK ---
-# Compute pairwise distances using broadcasting
-# Results in an (M x N) matrix
-delta_x = d_x[:, np.newaxis] - c_x
-delta_y = d_y[:, np.newaxis] - c_y
-
-# Squared Euclidean distance (faster than taking square roots)
-dist_sq = delta_x ** 2 + delta_y ** 2
-r_sq = R ** 2
-
-# Distance mask (True if within radius R)
-dist_mask = dist_sq <= r_sq
-
-# --- B. ANGLE CHECK ---
-# Compute angle for each demand–camera pair (radians, range: -pi to +pi)
-# arctan2(y, x) returns the angle relative to the positive x-axis
-angles_rad = np.arctan2(delta_y, delta_x)
-
-# Convert to degrees and map to [0, 360)
-angles_deg = (np.degrees(angles_rad) + 360) % 360
-
-# Prepare containers for the final DataFrame
-column_data = {}
-
-print(f"Performing angular checks ({len(CAMERA_ANGLES)} orientations)...")
-
-for camera_angle in CAMERA_ANGLES:
-    # Mathematical angle conversion:
-    # Geographic 0° (North) corresponds to 90° in mathematical coordinates
-    center_angle = (90 - camera_angle) % 360
-
-    # Compute the minimum angular difference
-    # Formula for shortest angular distance:
-    # (a - b + 180) % 360 - 180
-    diff = np.abs((angles_deg - center_angle + 180) % 360 - 180)
-
-    # Angular mask (within half of the FOV)
-    angle_mask = diff <= (FOV / 2.0)
-
-    # --- C. COMBINE DISTANCE AND ANGLE CONDITIONS ---
-    # Coverage exists only if both distance and angle conditions are satisfied
-    total_coverage = dist_mask & angle_mask
-
-    # Generate column names: "CandidateID_Angle"
-    current_col_names = [f"{cid}_{camera_angle}" for cid in c_ids]
-
-    # Store coverage results column by column
-    # total_coverage[:, i] corresponds to camera i for all demand points
-    for i, col_name in enumerate(current_col_names):
-        # Store as int8 to reduce memory usage
-        column_data[col_name] = total_coverage[:, i].astype(np.int8)
-
-print("Combining results and writing to CSV...")
-# Create the coverage DataFrame
-df_coverage = pd.DataFrame(column_data, index=d_ids)
-
-# Name the index for clarity in Excel/CSV
-df_coverage.index.name = 'Demand_Point_ID'
-
-# Save to CSV
-df_coverage.to_csv(OUTPUT_COVERAGE_FILE)
-
-print("-" * 30)
-print(f"Success! '{OUTPUT_COVERAGE_FILE}' has been created.")
-print(f"Matrix size: {df_coverage.shape[0]} rows x {df_coverage.shape[1]} columns")
-print(f"Parameters used: R = {R} m, FOV = {FOV} degrees")
-print("-" * 30)
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap, BoundaryNorm
-from scipy import sparse
-from matplotlib.lines import Line2D
-import time
-import random
 
 # ==============================
 # 1. SETTINGS
 # ==============================
-INPUT_FILE = "new.xlsx"
+INPUT_FILE = "Final_Dataset_MCLP.xlsx"
 DEMAND_SHEET = "demand"
 CAMERA_SHEET = "camera"
 
-# --- SPECIFIC OUTPUT FOR SOLUTION 1 ---
+# --- OUTPUT FILES ---
 OUTPUT_IMAGE_FILE = "greedy_heatmap_soln1.png"
 OUTPUT_CURVE_FILE = "greedy_growth_curve_soln1.png"
-OUTPUT_EXCEL_FILE = "greedy_solution_final_soln1.xlsx"  # <--- As requested
-HEATMAP_TITLE = "Solution 1: Randomized Greedy (300 Cameras)"
+OUTPUT_EXCEL_FILE = "greedy_solution_final_soln1.xlsx"
+HEATMAP_TITLE = "Solution 1: Randomized Greedy (100 Cameras)"
 
 # Optimization Parameters
-CAMERA_COUNT_P = 300  # <--- Run for exactly 300 cameras
 CAMERA_RADIUS = 5
 FOV_HALF_ANGLE = 45
+MAX_ITERATIONS = 10000  # High limit to ensure we reach 100%
 
-# Randomization (RCL)
-RCL_SIZE = 5
-RANDOM_SEED = None  # Change to integer (e.g. 42) to fix the random choices
+# Randomization (RCL) settings
+# RCL_SIZE = 50 (High Exploration)
+RCL_SIZE = 50           
+RANDOM_SEED = None      # Set to integer (e.g. 42) for reproducible results
 
 # Grid Settings
 TARGET_COLS = 80
@@ -945,30 +796,28 @@ for start_idx in range(0, num_cands, BATCH_SIZE):
 coverage_matrix = sparse.hstack(sparse_chunks).tocsc()
 
 # ==============================
-# 5. RANDOMIZED GREEDY OPTIMIZATION
+# 5. RANDOMIZED GREEDY OPTIMIZATION (Until 100%)
 # ==============================
-print(f"Optimizing for {CAMERA_COUNT_P} cameras using RCL={RCL_SIZE}...")
+print(f"Optimizing until 100% coverage...")
 
 current_weights = df_demand['weight'].values.copy()
 selected_indices = []
-
-# List to track history for scenarios
 history = []
 
-for i in range(CAMERA_COUNT_P):
+for i in range(MAX_ITERATIONS):
     # A. Calculate gains
     gains = coverage_matrix.T @ current_weights
     
     valid_gains_mask = gains > 0
     valid_indices = np.where(valid_gains_mask)[0]
     
+    # STOPPING CONDITION 1: No more gain possible
     if len(valid_indices) == 0:
-        print("No more gain possible (optimization stopped early).")
+        print(f"  -> Optimization stopped at Camera {i}: No further gain possible.")
         break
         
-    # B. RCL Selection (Top 5 Best)
+    # B. RCL Selection (Top RCL_SIZE Best)
     current_rcl_size = min(RCL_SIZE, len(valid_indices))
-    # argpartition puts the top K elements at the end
     top_k_indices_unsorted = np.argpartition(gains[valid_indices], -current_rcl_size)[-current_rcl_size:]
     top_candidates = valid_indices[top_k_indices_unsorted]
     
@@ -989,6 +838,16 @@ for i in range(CAMERA_COUNT_P):
         'coverage_pct': pct,
         'marginal_gain': gains[selected_idx]
     })
+    
+    # REPORTING: Every 10 steps or exactly at 100
+    count = i + 1
+    if count == 1 or count % 10 == 0:
+        print(f"Cam {count:<5} | Coverage: {pct:.2f}%")
+        
+    # STOPPING CONDITION 2: 100% Coverage Reached
+    if pct >= 100.0:
+        print(f"  -> Optimization stopped at Camera {count}: 100% Coverage reached!")
+        break
 
 # ==============================
 # 6. SCENARIO REPORTING
@@ -996,40 +855,43 @@ for i in range(CAMERA_COUNT_P):
 end_time = time.time()
 run_time = end_time - start_time
 final_pct = history[-1]['coverage_pct']
+total_cams = len(selected_indices)
 
 print("\n" + "="*50)
-print(f" SCENARIO ANALYSIS: COVERAGE FOR {OUTPUT_EXCEL_FILE}")
+print(f" FINAL REPORT")
 print("="*50)
-print(f"{'Cameras':<10} | {'Coverage %':<15} | {'Gain':<10}")
-print("-" * 50)
+print(f"Total Cameras Needed for {final_pct:.2f}%: {total_cams}")
 
-# Print specific milestones to understand growth
-milestones = [10, 50, 100, 150, 200, 250, 300]
-for m in milestones:
-    if m <= len(history):
-        rec = history[m-1] 
-        print(f"{rec['camera_count']:<10} | {rec['coverage_pct']:<6.2f}%         | +{rec['marginal_gain']:.0f}")
+# Check status at exactly 100 cameras
+pct_100 = 0.0
+if len(history) >= 100:
+    pct_100 = history[99]['coverage_pct']
+    print(f"Status at 100 Cameras:     {pct_100:.2f}% coverage")
+else:
+    print(f"Status at 100 Cameras:     N/A (Reached 100% before 100 cameras)")
+    pct_100 = final_pct
 
 print("-" * 50)
-print(f"FINAL: {len(selected_indices)} cams | {final_pct:.2f}% | {run_time:.2f}s")
+print(f"Time Elapsed: {run_time:.2f}s")
 print("="*50 + "\n")
 
 # ==============================
-# 7. SAVE RESULTS TO EXCEL
+# 7. SAVE FULL RESULTS TO EXCEL
 # ==============================
 print(f"Saving to {OUTPUT_EXCEL_FILE}...")
 
-# 1. Camera Solution
+# 1. Camera Solution (Full list)
 df_results_cam = df_candidates.iloc[selected_indices].copy()
-df_results_cam = df_results_cam[['candidate_id', 'loc_id', 'x', 'y', 'dir_angle']]
+df_results_cam['selection_order'] = range(1, len(df_results_cam) + 1)
+df_results_cam = df_results_cam[['selection_order', 'candidate_id', 'loc_id', 'x', 'y', 'dir_angle']]
 df_results_cam.rename(columns={'dir_angle': 'direction_degrees'}, inplace=True)
 
-# 2. Demand Coverage Status
-selected_matrix = coverage_matrix[:, selected_indices]
-coverage_counts_per_point = np.array(selected_matrix.sum(axis=1)).flatten()
+# 2. Demand Coverage Status (Full Coverage)
+selected_matrix_full = coverage_matrix[:, selected_indices]
+coverage_counts_full = np.array(selected_matrix_full.sum(axis=1)).flatten()
 
 df_results_dem = df_demand.copy()
-df_results_dem['cameras_covering'] = coverage_counts_per_point
+df_results_dem['cameras_covering'] = coverage_counts_full
 df_results_dem['is_covered'] = np.where(df_results_dem['cameras_covering'] > 0, 'Yes', 'No')
 
 # 3. Growth History
@@ -1043,7 +905,7 @@ with pd.ExcelWriter(OUTPUT_EXCEL_FILE) as writer:
 print("Excel file created successfully.")
 
 # ==============================
-# 8. VISUALIZATION: GROWTH CURVE
+# 8. VISUALIZATION: GROWTH CURVE (FULL)
 # ==============================
 plt.figure(figsize=(10, 6), dpi=100)
 x_vals = [h['camera_count'] for h in history]
@@ -1051,13 +913,17 @@ y_vals = [h['coverage_pct'] for h in history]
 
 plt.plot(x_vals, y_vals, color='#2980b9', linewidth=2, label='Coverage %')
 
-for m in milestones:
-    if m <= len(history):
-        val = history[m-1]['coverage_pct']
-        plt.plot(m, val, 'o', color='#e74c3c')
-        plt.annotate(f"{val:.1f}%", (m, val), textcoords="offset points", xytext=(0, 10), ha='center', fontsize=9)
+# Mark the 100th camera point if it exists
+if len(history) >= 100:
+    val_100 = history[99]['coverage_pct']
+    plt.plot(100, val_100, 'o', color='orange', label='100 Cameras')
+    plt.annotate(f"100 Cams: {val_100:.1f}%", (100, val_100), textcoords="offset points", xytext=(0, -20), ha='center', fontsize=9)
 
-plt.title(f"Coverage Growth (Solution 1)\nMax: {final_pct:.2f}%", fontsize=14, fontweight='bold')
+# Mark the Final point
+plt.plot(x_vals[-1], y_vals[-1], 'o', color='green', label='Final')
+plt.annotate(f"Final: {y_vals[-1]:.1f}%", (x_vals[-1], y_vals[-1]), textcoords="offset points", xytext=(0, 10), ha='right', fontsize=9)
+
+plt.title(f"Coverage Growth to 100%\nTotal Cams: {total_cams}", fontsize=14, fontweight='bold')
 plt.xlabel("Number of Cameras")
 plt.ylabel("Coverage Percentage (%)")
 plt.grid(True, linestyle='--', alpha=0.6)
@@ -1067,13 +933,22 @@ plt.savefig(OUTPUT_CURVE_FILE)
 print(f"Curve saved: {OUTPUT_CURVE_FILE}")
 
 # ==============================
-# 9. VISUALIZATION: HEATMAP
+# 9. VISUALIZATION: HEATMAP (ONLY FIRST 100 CAMERAS)
 # ==============================
+# Filter to get only the first 100 indices (or less if total < 100)
+limit = 100
+indices_100 = selected_indices[:limit]
+
+# Re-compute coverage counts for just these 100 cameras
+selected_matrix_100 = coverage_matrix[:, indices_100]
+coverage_counts_100 = np.array(selected_matrix_100.sum(axis=1)).flatten()
+
+# Generate Grid for Heatmap
 final_heatmap_grid = np.zeros((TARGET_ROWS, TARGET_COLS))
 dem_x_flat = df_demand['x'].values
 dem_y_flat = df_demand['y'].values
 
-for i, count in enumerate(coverage_counts_per_point):
+for i, count in enumerate(coverage_counts_100):
     if count > 0:
         r, c = int(dem_y_flat[i]), int(dem_x_flat[i])
         if 0 <= r < TARGET_ROWS and 0 <= c < TARGET_COLS:
@@ -1090,10 +965,7 @@ ax.xaxis.tick_top()
 ax.xaxis.set_label_position('top')
 ax.set_xticks(np.arange(0, TARGET_COLS + 1, 10))
 ax.set_yticks(np.arange(0, TARGET_ROWS + 1, 10))
-ax.set_xticks(np.arange(0.5, TARGET_COLS, 1), minor=True)
-ax.set_yticks(np.arange(0.5, TARGET_ROWS, 1), minor=True)
-ax.grid(which='minor', color='gray', linestyle='-', linewidth=0.5)
-ax.tick_params(which='minor', bottom=False, left=False)
+ax.grid(which='major', color='gray', linestyle=':', linewidth=0.5)
 
 colors = ['#ffffff00', '#800080', '#00ced1', '#ffd700'] 
 cmap = ListedColormap(colors)
@@ -1109,20 +981,11 @@ legend_elements = [
 ]
 ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0.)
 
-ax.set_title(f"{HEATMAP_TITLE}\nCoverage: {final_pct:.1f}%", fontsize=14, fontweight='bold', pad=20)
+# Use the specific coverage percentage for 100 cameras in the title
+ax.set_title(f"{HEATMAP_TITLE}\nCoverage at 100 Cams: {pct_100:.1f}%", fontsize=14, fontweight='bold', pad=20)
 plt.tight_layout()
 plt.savefig(OUTPUT_IMAGE_FILE, bbox_inches='tight')
-print(f"Heatmap saved: {OUTPUT_IMAGE_FILE}")
-
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-# import matplotlib.image as mpimg # Not needed for grid view
-from matplotlib.colors import ListedColormap, BoundaryNorm
-from scipy import sparse
-from matplotlib.lines import Line2D
-import time
-import random  # <--- Added for randomization
+print(f"Heatmap (100 Cams) saved: {OUTPUT_IMAGE_FILE}")
 
 
 
@@ -1140,36 +1003,41 @@ import random  # <--- Added for randomization
 
 
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap, BoundaryNorm
-from scipy import sparse
-from matplotlib.lines import Line2D
-import time
-import random
+
+
+
+
+
+
+
+
+
+
+
+
 
 # ==============================
 # 1. SETTINGS
 # ==============================
-INPUT_FILE = "new.xlsx"
+INPUT_FILE = "Final_Dataset_MCLP.xlsx"
 DEMAND_SHEET = "demand"
 CAMERA_SHEET = "camera"
 
-# --- SPECIFIC OUTPUT FOR SOLUTION 1 ---
+# --- OUTPUT FILES ---
 OUTPUT_IMAGE_FILE = "greedy_heatmap_soln2.png"
 OUTPUT_CURVE_FILE = "greedy_growth_curve_soln2.png"
-OUTPUT_EXCEL_FILE = "greedy_solution_final_soln2.xlsx"  # <--- As requested
-HEATMAP_TITLE = "Solution 2: Randomized Greedy (300 Cameras)"
+OUTPUT_EXCEL_FILE = "greedy_solution_final_soln2.xlsx"
+HEATMAP_TITLE = "Solution 2: Randomized Greedy (100 Cameras)"
 
 # Optimization Parameters
-CAMERA_COUNT_P = 300  # <--- Run for exactly 300 cameras
 CAMERA_RADIUS = 5
 FOV_HALF_ANGLE = 45
+MAX_ITERATIONS = 10000  # High limit to ensure we reach 100%
 
-# Randomization (RCL)
-RCL_SIZE = 5
-RANDOM_SEED = None  # Change to integer (e.g. 42) to fix the random choices
+# Randomization (RCL) settings
+# RCL_SIZE = 50 (High Exploration)
+RCL_SIZE = 50           
+RANDOM_SEED = None      # Set to integer (e.g. 42) for reproducible results
 
 # Grid Settings
 TARGET_COLS = 80
@@ -1248,30 +1116,28 @@ for start_idx in range(0, num_cands, BATCH_SIZE):
 coverage_matrix = sparse.hstack(sparse_chunks).tocsc()
 
 # ==============================
-# 5. RANDOMIZED GREEDY OPTIMIZATION
+# 5. RANDOMIZED GREEDY OPTIMIZATION (Until 100%)
 # ==============================
-print(f"Optimizing for {CAMERA_COUNT_P} cameras using RCL={RCL_SIZE}...")
+print(f"Optimizing until 100% coverage...")
 
 current_weights = df_demand['weight'].values.copy()
 selected_indices = []
-
-# List to track history for scenarios
 history = []
 
-for i in range(CAMERA_COUNT_P):
+for i in range(MAX_ITERATIONS):
     # A. Calculate gains
     gains = coverage_matrix.T @ current_weights
     
     valid_gains_mask = gains > 0
     valid_indices = np.where(valid_gains_mask)[0]
     
+    # STOPPING CONDITION 1: No more gain possible
     if len(valid_indices) == 0:
-        print("No more gain possible (optimization stopped early).")
+        print(f"  -> Optimization stopped at Camera {i}: No further gain possible.")
         break
         
-    # B. RCL Selection (Top 5 Best)
+    # B. RCL Selection (Top RCL_SIZE Best)
     current_rcl_size = min(RCL_SIZE, len(valid_indices))
-    # argpartition puts the top K elements at the end
     top_k_indices_unsorted = np.argpartition(gains[valid_indices], -current_rcl_size)[-current_rcl_size:]
     top_candidates = valid_indices[top_k_indices_unsorted]
     
@@ -1292,6 +1158,16 @@ for i in range(CAMERA_COUNT_P):
         'coverage_pct': pct,
         'marginal_gain': gains[selected_idx]
     })
+    
+    # REPORTING: Every 10 steps or exactly at 100
+    count = i + 1
+    if count == 1 or count % 10 == 0:
+        print(f"Cam {count:<5} | Coverage: {pct:.2f}%")
+        
+    # STOPPING CONDITION 2: 100% Coverage Reached
+    if pct >= 100.0:
+        print(f"  -> Optimization stopped at Camera {count}: 100% Coverage reached!")
+        break
 
 # ==============================
 # 6. SCENARIO REPORTING
@@ -1299,40 +1175,43 @@ for i in range(CAMERA_COUNT_P):
 end_time = time.time()
 run_time = end_time - start_time
 final_pct = history[-1]['coverage_pct']
+total_cams = len(selected_indices)
 
 print("\n" + "="*50)
-print(f" SCENARIO ANALYSIS: COVERAGE FOR {OUTPUT_EXCEL_FILE}")
+print(f" FINAL REPORT")
 print("="*50)
-print(f"{'Cameras':<10} | {'Coverage %':<15} | {'Gain':<10}")
-print("-" * 50)
+print(f"Total Cameras Needed for {final_pct:.2f}%: {total_cams}")
 
-# Print specific milestones to understand growth
-milestones = [10, 50, 100, 150, 200, 250, 300]
-for m in milestones:
-    if m <= len(history):
-        rec = history[m-1] 
-        print(f"{rec['camera_count']:<10} | {rec['coverage_pct']:<6.2f}%         | +{rec['marginal_gain']:.0f}")
+# Check status at exactly 100 cameras
+pct_100 = 0.0
+if len(history) >= 100:
+    pct_100 = history[99]['coverage_pct']
+    print(f"Status at 100 Cameras:     {pct_100:.2f}% coverage")
+else:
+    print(f"Status at 100 Cameras:     N/A (Reached 100% before 100 cameras)")
+    pct_100 = final_pct
 
 print("-" * 50)
-print(f"FINAL: {len(selected_indices)} cams | {final_pct:.2f}% | {run_time:.2f}s")
+print(f"Time Elapsed: {run_time:.2f}s")
 print("="*50 + "\n")
 
 # ==============================
-# 7. SAVE RESULTS TO EXCEL
+# 7. SAVE FULL RESULTS TO EXCEL
 # ==============================
 print(f"Saving to {OUTPUT_EXCEL_FILE}...")
 
-# 1. Camera Solution
+# 1. Camera Solution (Full list)
 df_results_cam = df_candidates.iloc[selected_indices].copy()
-df_results_cam = df_results_cam[['candidate_id', 'loc_id', 'x', 'y', 'dir_angle']]
+df_results_cam['selection_order'] = range(1, len(df_results_cam) + 1)
+df_results_cam = df_results_cam[['selection_order', 'candidate_id', 'loc_id', 'x', 'y', 'dir_angle']]
 df_results_cam.rename(columns={'dir_angle': 'direction_degrees'}, inplace=True)
 
-# 2. Demand Coverage Status
-selected_matrix = coverage_matrix[:, selected_indices]
-coverage_counts_per_point = np.array(selected_matrix.sum(axis=1)).flatten()
+# 2. Demand Coverage Status (Full Coverage)
+selected_matrix_full = coverage_matrix[:, selected_indices]
+coverage_counts_full = np.array(selected_matrix_full.sum(axis=1)).flatten()
 
 df_results_dem = df_demand.copy()
-df_results_dem['cameras_covering'] = coverage_counts_per_point
+df_results_dem['cameras_covering'] = coverage_counts_full
 df_results_dem['is_covered'] = np.where(df_results_dem['cameras_covering'] > 0, 'Yes', 'No')
 
 # 3. Growth History
@@ -1346,7 +1225,7 @@ with pd.ExcelWriter(OUTPUT_EXCEL_FILE) as writer:
 print("Excel file created successfully.")
 
 # ==============================
-# 8. VISUALIZATION: GROWTH CURVE
+# 8. VISUALIZATION: GROWTH CURVE (FULL)
 # ==============================
 plt.figure(figsize=(10, 6), dpi=100)
 x_vals = [h['camera_count'] for h in history]
@@ -1354,13 +1233,17 @@ y_vals = [h['coverage_pct'] for h in history]
 
 plt.plot(x_vals, y_vals, color='#2980b9', linewidth=2, label='Coverage %')
 
-for m in milestones:
-    if m <= len(history):
-        val = history[m-1]['coverage_pct']
-        plt.plot(m, val, 'o', color='#e74c3c')
-        plt.annotate(f"{val:.1f}%", (m, val), textcoords="offset points", xytext=(0, 10), ha='center', fontsize=9)
+# Mark the 100th camera point if it exists
+if len(history) >= 100:
+    val_100 = history[99]['coverage_pct']
+    plt.plot(100, val_100, 'o', color='orange', label='100 Cameras')
+    plt.annotate(f"100 Cams: {val_100:.1f}%", (100, val_100), textcoords="offset points", xytext=(0, -20), ha='center', fontsize=9)
 
-plt.title(f"Coverage Growth (Solution 1)\nMax: {final_pct:.2f}%", fontsize=14, fontweight='bold')
+# Mark the Final point
+plt.plot(x_vals[-1], y_vals[-1], 'o', color='green', label='Final')
+plt.annotate(f"Final: {y_vals[-1]:.1f}%", (x_vals[-1], y_vals[-1]), textcoords="offset points", xytext=(0, 10), ha='right', fontsize=9)
+
+plt.title(f"Coverage Growth to 100%\nTotal Cams: {total_cams}", fontsize=14, fontweight='bold')
 plt.xlabel("Number of Cameras")
 plt.ylabel("Coverage Percentage (%)")
 plt.grid(True, linestyle='--', alpha=0.6)
@@ -1370,13 +1253,22 @@ plt.savefig(OUTPUT_CURVE_FILE)
 print(f"Curve saved: {OUTPUT_CURVE_FILE}")
 
 # ==============================
-# 9. VISUALIZATION: HEATMAP
+# 9. VISUALIZATION: HEATMAP (ONLY FIRST 100 CAMERAS)
 # ==============================
+# Filter to get only the first 100 indices (or less if total < 100)
+limit = 100
+indices_100 = selected_indices[:limit]
+
+# Re-compute coverage counts for just these 100 cameras
+selected_matrix_100 = coverage_matrix[:, indices_100]
+coverage_counts_100 = np.array(selected_matrix_100.sum(axis=1)).flatten()
+
+# Generate Grid for Heatmap
 final_heatmap_grid = np.zeros((TARGET_ROWS, TARGET_COLS))
 dem_x_flat = df_demand['x'].values
 dem_y_flat = df_demand['y'].values
 
-for i, count in enumerate(coverage_counts_per_point):
+for i, count in enumerate(coverage_counts_100):
     if count > 0:
         r, c = int(dem_y_flat[i]), int(dem_x_flat[i])
         if 0 <= r < TARGET_ROWS and 0 <= c < TARGET_COLS:
@@ -1393,10 +1285,7 @@ ax.xaxis.tick_top()
 ax.xaxis.set_label_position('top')
 ax.set_xticks(np.arange(0, TARGET_COLS + 1, 10))
 ax.set_yticks(np.arange(0, TARGET_ROWS + 1, 10))
-ax.set_xticks(np.arange(0.5, TARGET_COLS, 1), minor=True)
-ax.set_yticks(np.arange(0.5, TARGET_ROWS, 1), minor=True)
-ax.grid(which='minor', color='gray', linestyle='-', linewidth=0.5)
-ax.tick_params(which='minor', bottom=False, left=False)
+ax.grid(which='major', color='gray', linestyle=':', linewidth=0.5)
 
 colors = ['#ffffff00', '#800080', '#00ced1', '#ffd700'] 
 cmap = ListedColormap(colors)
@@ -1412,10 +1301,11 @@ legend_elements = [
 ]
 ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0.)
 
-ax.set_title(f"{HEATMAP_TITLE}\nCoverage: {final_pct:.1f}%", fontsize=14, fontweight='bold', pad=20)
+# Use the specific coverage percentage for 100 cameras in the title
+ax.set_title(f"{HEATMAP_TITLE}\nCoverage at 100 Cams: {pct_100:.1f}%", fontsize=14, fontweight='bold', pad=20)
 plt.tight_layout()
 plt.savefig(OUTPUT_IMAGE_FILE, bbox_inches='tight')
-print(f"Heatmap saved: {OUTPUT_IMAGE_FILE}")
+print(f"Heatmap (100 Cams) saved: {OUTPUT_IMAGE_FILE}")
 
 
 
@@ -1439,36 +1329,54 @@ print(f"Heatmap saved: {OUTPUT_IMAGE_FILE}")
 
 
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap, BoundaryNorm
-from scipy import sparse
-from matplotlib.lines import Line2D
-import time
-import random
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # ==============================
 # 1. SETTINGS
 # ==============================
-INPUT_FILE = "new.xlsx"
+INPUT_FILE = "Final_Dataset_MCLP.xlsx"
 DEMAND_SHEET = "demand"
 CAMERA_SHEET = "camera"
 
-# --- SPECIFIC OUTPUT FOR SOLUTION 1 ---
+# --- OUTPUT FILES ---
 OUTPUT_IMAGE_FILE = "greedy_heatmap_soln3.png"
 OUTPUT_CURVE_FILE = "greedy_growth_curve_soln3.png"
-OUTPUT_EXCEL_FILE = "greedy_solution_final_soln3.xlsx"  # <--- As requested
-HEATMAP_TITLE = "Solution 3: Randomized Greedy (300 Cameras)"
+OUTPUT_EXCEL_FILE = "greedy_solution_final_soln3.xlsx"
+HEATMAP_TITLE = "Solution 3: Randomized Greedy (100 Cameras)"
 
 # Optimization Parameters
-CAMERA_COUNT_P = 300  # <--- Run for exactly 300 cameras
 CAMERA_RADIUS = 5
 FOV_HALF_ANGLE = 45
+MAX_ITERATIONS = 10000  # High limit to ensure we reach 100%
 
-# Randomization (RCL)
-RCL_SIZE = 5
-RANDOM_SEED = None  # Change to integer (e.g. 42) to fix the random choices
+# Randomization (RCL) settings
+# RCL_SIZE = 50 (High Exploration)
+RCL_SIZE = 50           
+RANDOM_SEED = None      # Set to integer (e.g. 42) for reproducible results
 
 # Grid Settings
 TARGET_COLS = 80
@@ -1547,30 +1455,28 @@ for start_idx in range(0, num_cands, BATCH_SIZE):
 coverage_matrix = sparse.hstack(sparse_chunks).tocsc()
 
 # ==============================
-# 5. RANDOMIZED GREEDY OPTIMIZATION
+# 5. RANDOMIZED GREEDY OPTIMIZATION (Until 100%)
 # ==============================
-print(f"Optimizing for {CAMERA_COUNT_P} cameras using RCL={RCL_SIZE}...")
+print(f"Optimizing until 100% coverage...")
 
 current_weights = df_demand['weight'].values.copy()
 selected_indices = []
-
-# List to track history for scenarios
 history = []
 
-for i in range(CAMERA_COUNT_P):
+for i in range(MAX_ITERATIONS):
     # A. Calculate gains
     gains = coverage_matrix.T @ current_weights
     
     valid_gains_mask = gains > 0
     valid_indices = np.where(valid_gains_mask)[0]
     
+    # STOPPING CONDITION 1: No more gain possible
     if len(valid_indices) == 0:
-        print("No more gain possible (optimization stopped early).")
+        print(f"  -> Optimization stopped at Camera {i}: No further gain possible.")
         break
         
-    # B. RCL Selection (Top 5 Best)
+    # B. RCL Selection (Top RCL_SIZE Best)
     current_rcl_size = min(RCL_SIZE, len(valid_indices))
-    # argpartition puts the top K elements at the end
     top_k_indices_unsorted = np.argpartition(gains[valid_indices], -current_rcl_size)[-current_rcl_size:]
     top_candidates = valid_indices[top_k_indices_unsorted]
     
@@ -1591,6 +1497,16 @@ for i in range(CAMERA_COUNT_P):
         'coverage_pct': pct,
         'marginal_gain': gains[selected_idx]
     })
+    
+    # REPORTING: Every 10 steps or exactly at 100
+    count = i + 1
+    if count == 1 or count % 10 == 0:
+        print(f"Cam {count:<5} | Coverage: {pct:.2f}%")
+        
+    # STOPPING CONDITION 2: 100% Coverage Reached
+    if pct >= 100.0:
+        print(f"  -> Optimization stopped at Camera {count}: 100% Coverage reached!")
+        break
 
 # ==============================
 # 6. SCENARIO REPORTING
@@ -1598,40 +1514,43 @@ for i in range(CAMERA_COUNT_P):
 end_time = time.time()
 run_time = end_time - start_time
 final_pct = history[-1]['coverage_pct']
+total_cams = len(selected_indices)
 
 print("\n" + "="*50)
-print(f" SCENARIO ANALYSIS: COVERAGE FOR {OUTPUT_EXCEL_FILE}")
+print(f" FINAL REPORT")
 print("="*50)
-print(f"{'Cameras':<10} | {'Coverage %':<15} | {'Gain':<10}")
-print("-" * 50)
+print(f"Total Cameras Needed for {final_pct:.2f}%: {total_cams}")
 
-# Print specific milestones to understand growth
-milestones = [10, 50, 100, 150, 200, 250, 300]
-for m in milestones:
-    if m <= len(history):
-        rec = history[m-1] 
-        print(f"{rec['camera_count']:<10} | {rec['coverage_pct']:<6.2f}%         | +{rec['marginal_gain']:.0f}")
+# Check status at exactly 100 cameras
+pct_100 = 0.0
+if len(history) >= 100:
+    pct_100 = history[99]['coverage_pct']
+    print(f"Status at 100 Cameras:     {pct_100:.2f}% coverage")
+else:
+    print(f"Status at 100 Cameras:     N/A (Reached 100% before 100 cameras)")
+    pct_100 = final_pct
 
 print("-" * 50)
-print(f"FINAL: {len(selected_indices)} cams | {final_pct:.2f}% | {run_time:.2f}s")
+print(f"Time Elapsed: {run_time:.2f}s")
 print("="*50 + "\n")
 
 # ==============================
-# 7. SAVE RESULTS TO EXCEL
+# 7. SAVE FULL RESULTS TO EXCEL
 # ==============================
 print(f"Saving to {OUTPUT_EXCEL_FILE}...")
 
-# 1. Camera Solution
+# 1. Camera Solution (Full list)
 df_results_cam = df_candidates.iloc[selected_indices].copy()
-df_results_cam = df_results_cam[['candidate_id', 'loc_id', 'x', 'y', 'dir_angle']]
+df_results_cam['selection_order'] = range(1, len(df_results_cam) + 1)
+df_results_cam = df_results_cam[['selection_order', 'candidate_id', 'loc_id', 'x', 'y', 'dir_angle']]
 df_results_cam.rename(columns={'dir_angle': 'direction_degrees'}, inplace=True)
 
-# 2. Demand Coverage Status
-selected_matrix = coverage_matrix[:, selected_indices]
-coverage_counts_per_point = np.array(selected_matrix.sum(axis=1)).flatten()
+# 2. Demand Coverage Status (Full Coverage)
+selected_matrix_full = coverage_matrix[:, selected_indices]
+coverage_counts_full = np.array(selected_matrix_full.sum(axis=1)).flatten()
 
 df_results_dem = df_demand.copy()
-df_results_dem['cameras_covering'] = coverage_counts_per_point
+df_results_dem['cameras_covering'] = coverage_counts_full
 df_results_dem['is_covered'] = np.where(df_results_dem['cameras_covering'] > 0, 'Yes', 'No')
 
 # 3. Growth History
@@ -1645,7 +1564,7 @@ with pd.ExcelWriter(OUTPUT_EXCEL_FILE) as writer:
 print("Excel file created successfully.")
 
 # ==============================
-# 8. VISUALIZATION: GROWTH CURVE
+# 8. VISUALIZATION: GROWTH CURVE (FULL)
 # ==============================
 plt.figure(figsize=(10, 6), dpi=100)
 x_vals = [h['camera_count'] for h in history]
@@ -1653,13 +1572,17 @@ y_vals = [h['coverage_pct'] for h in history]
 
 plt.plot(x_vals, y_vals, color='#2980b9', linewidth=2, label='Coverage %')
 
-for m in milestones:
-    if m <= len(history):
-        val = history[m-1]['coverage_pct']
-        plt.plot(m, val, 'o', color='#e74c3c')
-        plt.annotate(f"{val:.1f}%", (m, val), textcoords="offset points", xytext=(0, 10), ha='center', fontsize=9)
+# Mark the 100th camera point if it exists
+if len(history) >= 100:
+    val_100 = history[99]['coverage_pct']
+    plt.plot(100, val_100, 'o', color='orange', label='100 Cameras')
+    plt.annotate(f"100 Cams: {val_100:.1f}%", (100, val_100), textcoords="offset points", xytext=(0, -20), ha='center', fontsize=9)
 
-plt.title(f"Coverage Growth (Solution 1)\nMax: {final_pct:.2f}%", fontsize=14, fontweight='bold')
+# Mark the Final point
+plt.plot(x_vals[-1], y_vals[-1], 'o', color='green', label='Final')
+plt.annotate(f"Final: {y_vals[-1]:.1f}%", (x_vals[-1], y_vals[-1]), textcoords="offset points", xytext=(0, 10), ha='right', fontsize=9)
+
+plt.title(f"Coverage Growth to 100%\nTotal Cams: {total_cams}", fontsize=14, fontweight='bold')
 plt.xlabel("Number of Cameras")
 plt.ylabel("Coverage Percentage (%)")
 plt.grid(True, linestyle='--', alpha=0.6)
@@ -1669,13 +1592,22 @@ plt.savefig(OUTPUT_CURVE_FILE)
 print(f"Curve saved: {OUTPUT_CURVE_FILE}")
 
 # ==============================
-# 9. VISUALIZATION: HEATMAP
+# 9. VISUALIZATION: HEATMAP (ONLY FIRST 100 CAMERAS)
 # ==============================
+# Filter to get only the first 100 indices (or less if total < 100)
+limit = 100
+indices_100 = selected_indices[:limit]
+
+# Re-compute coverage counts for just these 100 cameras
+selected_matrix_100 = coverage_matrix[:, indices_100]
+coverage_counts_100 = np.array(selected_matrix_100.sum(axis=1)).flatten()
+
+# Generate Grid for Heatmap
 final_heatmap_grid = np.zeros((TARGET_ROWS, TARGET_COLS))
 dem_x_flat = df_demand['x'].values
 dem_y_flat = df_demand['y'].values
 
-for i, count in enumerate(coverage_counts_per_point):
+for i, count in enumerate(coverage_counts_100):
     if count > 0:
         r, c = int(dem_y_flat[i]), int(dem_x_flat[i])
         if 0 <= r < TARGET_ROWS and 0 <= c < TARGET_COLS:
@@ -1692,10 +1624,7 @@ ax.xaxis.tick_top()
 ax.xaxis.set_label_position('top')
 ax.set_xticks(np.arange(0, TARGET_COLS + 1, 10))
 ax.set_yticks(np.arange(0, TARGET_ROWS + 1, 10))
-ax.set_xticks(np.arange(0.5, TARGET_COLS, 1), minor=True)
-ax.set_yticks(np.arange(0.5, TARGET_ROWS, 1), minor=True)
-ax.grid(which='minor', color='gray', linestyle='-', linewidth=0.5)
-ax.tick_params(which='minor', bottom=False, left=False)
+ax.grid(which='major', color='gray', linestyle=':', linewidth=0.5)
 
 colors = ['#ffffff00', '#800080', '#00ced1', '#ffd700'] 
 cmap = ListedColormap(colors)
@@ -1711,10 +1640,11 @@ legend_elements = [
 ]
 ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0.)
 
-ax.set_title(f"{HEATMAP_TITLE}\nCoverage: {final_pct:.1f}%", fontsize=14, fontweight='bold', pad=20)
+# Use the specific coverage percentage for 100 cameras in the title
+ax.set_title(f"{HEATMAP_TITLE}\nCoverage at 100 Cams: {pct_100:.1f}%", fontsize=14, fontweight='bold', pad=20)
 plt.tight_layout()
 plt.savefig(OUTPUT_IMAGE_FILE, bbox_inches='tight')
-print(f"Heatmap saved: {OUTPUT_IMAGE_FILE}")
+print(f"Heatmap (100 Cams) saved: {OUTPUT_IMAGE_FILE}")
 
 
 
@@ -1738,14 +1668,14 @@ print(f"Heatmap saved: {OUTPUT_IMAGE_FILE}")
 # ==============================
 # 1. SETTINGS
 # ==============================
-INPUT_FILE = "new.xlsx"            # Source of Demand/Camera locations
+INPUT_FILE = "Final_Dataset_MCLP.xlsx"            # Source of Demand/Camera locations
 DEMAND_SHEET = "demand"
 CAMERA_SHEET = "camera"
 
-# --- CRITICAL CHANGE: LOAD FROM YOUR SAVED SOLUTION FILE ---
-# Change this filename to visualize different solutions (soln1, soln2, etc.)
+# File to load
 EXTERNAL_SOLUTION_FILE = "greedy_solution_final_soln1.xlsx" 
 
+# Updated Output Filenames and Title for 100 Cameras
 OUTPUT_IMAGE_FILE = "greedy_heatmap_gridview_soln1.png"
 HEATMAP_TITLE = "Solution 1 - Greedy Solution for Campus Heatmap (Grid View)"
 
@@ -1763,7 +1693,7 @@ print(f"--- PROCESS STARTED: LOADING {EXTERNAL_SOLUTION_FILE} ---")
 start_time = time.time()
 
 # ==============================
-# 2. LOAD DATA (Standard Setup)
+# 2. LOAD DATA
 # ==============================
 df_demand = pd.read_excel(INPUT_FILE, sheet_name=DEMAND_SHEET)
 df_demand.columns = [c.strip().lower() for c in df_demand.columns]
@@ -1781,9 +1711,9 @@ df_cam_locs['y'] = df_cam_locs['y'] - SUBTRACT_ONE
 print(f"Demand Points: {len(df_demand)} | Total Weight: {TOTAL_DEMAND_WEIGHT:,.0f}")
 
 # ==============================
-# 3. GENERATE CANDIDATES (Must match original generation order!)
+# 3. GENERATE CANDIDATES
 # ==============================
-# We need to regenerate the exact same list of candidates to map IDs correctly
+# Regenerate candidates to ensure ID alignment
 candidates_list = []
 directions = [0, 90, 180, 270]
 
@@ -1803,7 +1733,6 @@ num_cands = len(df_candidates)
 # ==============================
 # 4. COMPUTE COVERAGE MATRIX
 # ==============================
-# We need the matrix to calculate what the loaded cameras actually cover
 print("Recomputing Coverage Matrix to verify solution...")
 
 dem_x = df_demand['x'].values[:, np.newaxis]
@@ -1839,40 +1768,33 @@ coverage_matrix = sparse.hstack(sparse_chunks).tocsc()
 print(f"Loading selected cameras from: {EXTERNAL_SOLUTION_FILE}")
 
 try:
-    # Read the file produced by your previous runs
     df_loaded_sol = pd.read_excel(EXTERNAL_SOLUTION_FILE, sheet_name='Selected_Cameras')
     
-    # Extract the 'candidate_id' column
-    # These IDs correspond to the rows in our df_candidates / columns in coverage_matrix
-    selected_indices = df_loaded_sol['candidate_id'].values
+    # --- FILTER FOR TOP 100 ROWS ---
+    print(f"  > Original file has {len(df_loaded_sol)} cameras.")
+    df_loaded_sol = df_loaded_sol.iloc[:100].copy() # Explicitly slice top 100
+    print(f"  > Selected top {len(df_loaded_sol)} cameras for visualization.")
+    # -------------------------------
     
+    selected_indices = df_loaded_sol['candidate_id'].values
     num_selected = len(selected_indices)
-    print(f"Successfully loaded {num_selected} cameras.")
     
 except Exception as e:
     print(f"ERROR: Could not read solution file. \n{e}")
-    print("Ensure the file exists and has a sheet named 'Selected_Cameras' with a 'candidate_id' column.")
     exit()
 
 # ==============================
 # 6. CALCULATE STATISTICS
 # ==============================
-# Slice the matrix to get only the selected cameras
 selected_matrix = coverage_matrix[:, selected_indices]
-
-# Sum across rows to see how many cameras cover each demand point
 coverage_counts_per_point = np.array(selected_matrix.sum(axis=1)).flatten()
 
-# Calculate Covered Weight
-# Demand points where coverage_counts > 0 are covered
 is_covered = coverage_counts_per_point > 0
 covered_weight = df_demand.loc[is_covered, 'weight'].sum()
 coverage_pct = (covered_weight / TOTAL_DEMAND_WEIGHT) * 100
 
-run_time = time.time() - start_time
-
 print("-" * 40)
-print(f"LOADED SOLUTION METRICS")
+print(f"LOADED SOLUTION METRICS (TOP 100)")
 print(f"CAMERAS:  {num_selected}")
 print(f"COVERAGE: {covered_weight:,.0f} / {TOTAL_DEMAND_WEIGHT:,.0f} ({coverage_pct:.2f}%)")
 print("-" * 40)
@@ -1962,17 +1884,28 @@ print(f"Heatmap saved: {OUTPUT_IMAGE_FILE}")
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 # ==============================
 # 1. SETTINGS
 # ==============================
-INPUT_FILE = "new.xlsx"            # Source of Demand/Camera locations
+INPUT_FILE = "Final_Dataset_MCLP.xlsx"            # Source of Demand/Camera locations
 DEMAND_SHEET = "demand"
 CAMERA_SHEET = "camera"
 
-# --- CRITICAL CHANGE: LOAD FROM YOUR SAVED SOLUTION FILE ---
-# Change this filename to visualize different solutions (soln1, soln2, etc.)
+# File to load
 EXTERNAL_SOLUTION_FILE = "greedy_solution_final_soln2.xlsx" 
 
+# Updated Output Filenames and Title for 100 Cameras
 OUTPUT_IMAGE_FILE = "greedy_heatmap_gridview_soln2.png"
 HEATMAP_TITLE = "Solution 2 - Greedy Solution for Campus Heatmap (Grid View)"
 
@@ -1990,7 +1923,7 @@ print(f"--- PROCESS STARTED: LOADING {EXTERNAL_SOLUTION_FILE} ---")
 start_time = time.time()
 
 # ==============================
-# 2. LOAD DATA (Standard Setup)
+# 2. LOAD DATA
 # ==============================
 df_demand = pd.read_excel(INPUT_FILE, sheet_name=DEMAND_SHEET)
 df_demand.columns = [c.strip().lower() for c in df_demand.columns]
@@ -2008,9 +1941,9 @@ df_cam_locs['y'] = df_cam_locs['y'] - SUBTRACT_ONE
 print(f"Demand Points: {len(df_demand)} | Total Weight: {TOTAL_DEMAND_WEIGHT:,.0f}")
 
 # ==============================
-# 3. GENERATE CANDIDATES (Must match original generation order!)
+# 3. GENERATE CANDIDATES
 # ==============================
-# We need to regenerate the exact same list of candidates to map IDs correctly
+# Regenerate candidates to ensure ID alignment
 candidates_list = []
 directions = [0, 90, 180, 270]
 
@@ -2030,7 +1963,6 @@ num_cands = len(df_candidates)
 # ==============================
 # 4. COMPUTE COVERAGE MATRIX
 # ==============================
-# We need the matrix to calculate what the loaded cameras actually cover
 print("Recomputing Coverage Matrix to verify solution...")
 
 dem_x = df_demand['x'].values[:, np.newaxis]
@@ -2066,40 +1998,33 @@ coverage_matrix = sparse.hstack(sparse_chunks).tocsc()
 print(f"Loading selected cameras from: {EXTERNAL_SOLUTION_FILE}")
 
 try:
-    # Read the file produced by your previous runs
     df_loaded_sol = pd.read_excel(EXTERNAL_SOLUTION_FILE, sheet_name='Selected_Cameras')
     
-    # Extract the 'candidate_id' column
-    # These IDs correspond to the rows in our df_candidates / columns in coverage_matrix
-    selected_indices = df_loaded_sol['candidate_id'].values
+    # --- FILTER FOR TOP 100 ROWS ---
+    print(f"  > Original file has {len(df_loaded_sol)} cameras.")
+    df_loaded_sol = df_loaded_sol.iloc[:100].copy() # Explicitly slice top 100
+    print(f"  > Selected top {len(df_loaded_sol)} cameras for visualization.")
+    # -------------------------------
     
+    selected_indices = df_loaded_sol['candidate_id'].values
     num_selected = len(selected_indices)
-    print(f"Successfully loaded {num_selected} cameras.")
     
 except Exception as e:
     print(f"ERROR: Could not read solution file. \n{e}")
-    print("Ensure the file exists and has a sheet named 'Selected_Cameras' with a 'candidate_id' column.")
     exit()
 
 # ==============================
 # 6. CALCULATE STATISTICS
 # ==============================
-# Slice the matrix to get only the selected cameras
 selected_matrix = coverage_matrix[:, selected_indices]
-
-# Sum across rows to see how many cameras cover each demand point
 coverage_counts_per_point = np.array(selected_matrix.sum(axis=1)).flatten()
 
-# Calculate Covered Weight
-# Demand points where coverage_counts > 0 are covered
 is_covered = coverage_counts_per_point > 0
 covered_weight = df_demand.loc[is_covered, 'weight'].sum()
 coverage_pct = (covered_weight / TOTAL_DEMAND_WEIGHT) * 100
 
-run_time = time.time() - start_time
-
 print("-" * 40)
-print(f"LOADED SOLUTION METRICS")
+print(f"LOADED SOLUTION METRICS (TOP 100)")
 print(f"CAMERAS:  {num_selected}")
 print(f"COVERAGE: {covered_weight:,.0f} / {TOTAL_DEMAND_WEIGHT:,.0f} ({coverage_pct:.2f}%)")
 print("-" * 40)
@@ -2195,17 +2120,27 @@ print(f"Heatmap saved: {OUTPUT_IMAGE_FILE}")
 
 
 
+
+
+
+
+
+
+
+
+
+
 # ==============================
 # 1. SETTINGS
 # ==============================
-INPUT_FILE = "new.xlsx"            # Source of Demand/Camera locations
+INPUT_FILE = "Final_Dataset_MCLP.xlsx"            # Source of Demand/Camera locations
 DEMAND_SHEET = "demand"
 CAMERA_SHEET = "camera"
 
-# --- CRITICAL CHANGE: LOAD FROM YOUR SAVED SOLUTION FILE ---
-# Change this filename to visualize different solutions (soln1, soln2, etc.)
+# File to load
 EXTERNAL_SOLUTION_FILE = "greedy_solution_final_soln3.xlsx" 
 
+# Updated Output Filenames and Title for 100 Cameras
 OUTPUT_IMAGE_FILE = "greedy_heatmap_gridview_soln3.png"
 HEATMAP_TITLE = "Solution 3 - Greedy Solution for Campus Heatmap (Grid View)"
 
@@ -2223,7 +2158,7 @@ print(f"--- PROCESS STARTED: LOADING {EXTERNAL_SOLUTION_FILE} ---")
 start_time = time.time()
 
 # ==============================
-# 2. LOAD DATA (Standard Setup)
+# 2. LOAD DATA
 # ==============================
 df_demand = pd.read_excel(INPUT_FILE, sheet_name=DEMAND_SHEET)
 df_demand.columns = [c.strip().lower() for c in df_demand.columns]
@@ -2241,9 +2176,9 @@ df_cam_locs['y'] = df_cam_locs['y'] - SUBTRACT_ONE
 print(f"Demand Points: {len(df_demand)} | Total Weight: {TOTAL_DEMAND_WEIGHT:,.0f}")
 
 # ==============================
-# 3. GENERATE CANDIDATES (Must match original generation order!)
+# 3. GENERATE CANDIDATES
 # ==============================
-# We need to regenerate the exact same list of candidates to map IDs correctly
+# Regenerate candidates to ensure ID alignment
 candidates_list = []
 directions = [0, 90, 180, 270]
 
@@ -2263,7 +2198,6 @@ num_cands = len(df_candidates)
 # ==============================
 # 4. COMPUTE COVERAGE MATRIX
 # ==============================
-# We need the matrix to calculate what the loaded cameras actually cover
 print("Recomputing Coverage Matrix to verify solution...")
 
 dem_x = df_demand['x'].values[:, np.newaxis]
@@ -2299,40 +2233,33 @@ coverage_matrix = sparse.hstack(sparse_chunks).tocsc()
 print(f"Loading selected cameras from: {EXTERNAL_SOLUTION_FILE}")
 
 try:
-    # Read the file produced by your previous runs
     df_loaded_sol = pd.read_excel(EXTERNAL_SOLUTION_FILE, sheet_name='Selected_Cameras')
     
-    # Extract the 'candidate_id' column
-    # These IDs correspond to the rows in our df_candidates / columns in coverage_matrix
-    selected_indices = df_loaded_sol['candidate_id'].values
+    # --- FILTER FOR TOP 100 ROWS ---
+    print(f"  > Original file has {len(df_loaded_sol)} cameras.")
+    df_loaded_sol = df_loaded_sol.iloc[:100].copy() # Explicitly slice top 100
+    print(f"  > Selected top {len(df_loaded_sol)} cameras for visualization.")
+    # -------------------------------
     
+    selected_indices = df_loaded_sol['candidate_id'].values
     num_selected = len(selected_indices)
-    print(f"Successfully loaded {num_selected} cameras.")
     
 except Exception as e:
     print(f"ERROR: Could not read solution file. \n{e}")
-    print("Ensure the file exists and has a sheet named 'Selected_Cameras' with a 'candidate_id' column.")
     exit()
 
 # ==============================
 # 6. CALCULATE STATISTICS
 # ==============================
-# Slice the matrix to get only the selected cameras
 selected_matrix = coverage_matrix[:, selected_indices]
-
-# Sum across rows to see how many cameras cover each demand point
 coverage_counts_per_point = np.array(selected_matrix.sum(axis=1)).flatten()
 
-# Calculate Covered Weight
-# Demand points where coverage_counts > 0 are covered
 is_covered = coverage_counts_per_point > 0
 covered_weight = df_demand.loc[is_covered, 'weight'].sum()
 coverage_pct = (covered_weight / TOTAL_DEMAND_WEIGHT) * 100
 
-run_time = time.time() - start_time
-
 print("-" * 40)
-print(f"LOADED SOLUTION METRICS")
+print(f"LOADED SOLUTION METRICS (TOP 100)")
 print(f"CAMERAS:  {num_selected}")
 print(f"COVERAGE: {covered_weight:,.0f} / {TOTAL_DEMAND_WEIGHT:,.0f} ({coverage_pct:.2f}%)")
 print("-" * 40)
@@ -2433,35 +2360,29 @@ print(f"Heatmap saved: {OUTPUT_IMAGE_FILE}")
 
 
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap, BoundaryNorm
-from scipy import sparse
-from matplotlib.lines import Line2D
-import time
-import random
+
 
 # ==============================
 # 1. SETTINGS
 # ==============================
-INPUT_FILE = "new.xlsx"
+INPUT_FILE = "Final_Dataset_MCLP.xlsx"
 INITIAL_SOLUTION_FILE = "greedy_solution_final_soln1.xlsx" 
 
 DEMAND_SHEET = "demand"
 CAMERA_SHEET = "camera"
 
+# Updated output names to distinguish this 100-camera run
 OUTPUT_IMAGE_FILE = "local_search_heatmap_soln1.png"
 OUTPUT_PLOT_FILE = "local_search_plot_soln1.png"
 OUTPUT_EXCEL_FILE = "local_search_soln1.xlsx"
-HEATMAP_TITLE = "Solution 1: 1-Swap Local Search"
+HEATMAP_TITLE = "Solution 1: 1-Swap Local Search (100 Cameras)"
 
 # Optimization Parameters
 CAMERA_RADIUS = 5
 FOV_HALF_ANGLE = 45
 
 # Threshold to prevent swapping for negligible/zero gains
-MIN_IMPROVEMENT_THRESHOLD = 0.01 
+MIN_IMPROVEMENT_THRESHOLD = 0.0001 
 
 # Grid Settings
 TARGET_COLS = 80
@@ -2540,14 +2461,21 @@ for start_idx in range(0, num_cands, BATCH_SIZE):
 coverage_matrix = sparse.hstack(sparse_chunks).tocsc()
 
 # ==============================
-# 5. LOAD INITIAL SOLUTION
+# 5. LOAD INITIAL SOLUTION (TOP 100)
 # ==============================
 print(f"--- Loading Initial Solution from {INITIAL_SOLUTION_FILE} ---")
 try:
     df_initial = pd.read_excel(INITIAL_SOLUTION_FILE, sheet_name='Selected_Cameras')
+    
+    # --- CRITICAL STEP: Filter for the first 100 rows ---
+    print(f"Original solution size: {len(df_initial)}")
+    df_initial = df_initial.iloc[:100].copy()
+    print(f"Filtered solution size: {len(df_initial)} (Top 100)")
+    # ----------------------------------------------------
+
     initial_indices = df_initial['candidate_id'].values.tolist()
     current_solution_set = set(initial_indices)
-    print(f"Loaded {len(current_solution_set)} cameras from file.")
+    
 except Exception as e:
     print(f"ERROR: {e}")
     exit()
@@ -2720,7 +2648,7 @@ plt.annotate(f"End: {history_obj_values[-1]:,.0f}", (history_iterations[-1], his
              textcoords="offset points", xytext=(-10, 10), ha='right', fontsize=9)
 
 # Update Title to include Coverage and Run Time
-plot_title = f"Local Search Trajectory\nFinal Coverage: {final_pct:.2f}% | Time: {run_time_seconds:.1f}s"
+plot_title = f"Local Search Trajectory (100 Cams)\nFinal Coverage: {final_pct:.2f}% | Time: {run_time_seconds:.1f}s"
 plt.title(plot_title, fontsize=14, fontweight='bold')
 plt.xlabel("Iteration Number")
 plt.ylabel("Total Weighted Coverage (Z)")
@@ -2751,26 +2679,37 @@ print(f"Trajectory plot saved: {OUTPUT_PLOT_FILE}")
 
 
 
+
+
+
+
+
+
+
+
+
+
 # ==============================
 # 1. SETTINGS
 # ==============================
-INPUT_FILE = "new.xlsx"
+INPUT_FILE = "Final_Dataset_MCLP.xlsx"
 INITIAL_SOLUTION_FILE = "greedy_solution_final_soln2.xlsx" 
 
 DEMAND_SHEET = "demand"
 CAMERA_SHEET = "camera"
 
+# Updated output names to distinguish this 100-camera run
 OUTPUT_IMAGE_FILE = "local_search_heatmap_soln2.png"
 OUTPUT_PLOT_FILE = "local_search_plot_soln2.png"
 OUTPUT_EXCEL_FILE = "local_search_soln2.xlsx"
-HEATMAP_TITLE = "Solution 2: 1-Swap Local Search"
+HEATMAP_TITLE = "Solution 2: 1-Swap Local Search (100 Cameras)"
 
 # Optimization Parameters
 CAMERA_RADIUS = 5
 FOV_HALF_ANGLE = 45
 
 # Threshold to prevent swapping for negligible/zero gains
-MIN_IMPROVEMENT_THRESHOLD = 0.01 
+MIN_IMPROVEMENT_THRESHOLD = 0.0001 
 
 # Grid Settings
 TARGET_COLS = 80
@@ -2849,14 +2788,21 @@ for start_idx in range(0, num_cands, BATCH_SIZE):
 coverage_matrix = sparse.hstack(sparse_chunks).tocsc()
 
 # ==============================
-# 5. LOAD INITIAL SOLUTION
+# 5. LOAD INITIAL SOLUTION (TOP 100)
 # ==============================
 print(f"--- Loading Initial Solution from {INITIAL_SOLUTION_FILE} ---")
 try:
     df_initial = pd.read_excel(INITIAL_SOLUTION_FILE, sheet_name='Selected_Cameras')
+    
+    # --- CRITICAL STEP: Filter for the first 100 rows ---
+    print(f"Original solution size: {len(df_initial)}")
+    df_initial = df_initial.iloc[:100].copy()
+    print(f"Filtered solution size: {len(df_initial)} (Top 100)")
+    # ----------------------------------------------------
+
     initial_indices = df_initial['candidate_id'].values.tolist()
     current_solution_set = set(initial_indices)
-    print(f"Loaded {len(current_solution_set)} cameras from file.")
+    
 except Exception as e:
     print(f"ERROR: {e}")
     exit()
@@ -3029,7 +2975,7 @@ plt.annotate(f"End: {history_obj_values[-1]:,.0f}", (history_iterations[-1], his
              textcoords="offset points", xytext=(-10, 10), ha='right', fontsize=9)
 
 # Update Title to include Coverage and Run Time
-plot_title = f"Local Search Trajectory\nFinal Coverage: {final_pct:.2f}% | Time: {run_time_seconds:.1f}s"
+plot_title = f"Local Search Trajectory (100 Cams)\nFinal Coverage: {final_pct:.2f}% | Time: {run_time_seconds:.1f}s"
 plt.title(plot_title, fontsize=14, fontweight='bold')
 plt.xlabel("Iteration Number")
 plt.ylabel("Total Weighted Coverage (Z)")
@@ -3068,26 +3014,38 @@ print(f"Trajectory plot saved: {OUTPUT_PLOT_FILE}")
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 # ==============================
 # 1. SETTINGS
 # ==============================
-INPUT_FILE = "new.xlsx"
+INPUT_FILE = "Final_Dataset_MCLP.xlsx"
 INITIAL_SOLUTION_FILE = "greedy_solution_final_soln3.xlsx" 
 
 DEMAND_SHEET = "demand"
 CAMERA_SHEET = "camera"
 
+# Updated output names to distinguish this 100-camera run
 OUTPUT_IMAGE_FILE = "local_search_heatmap_soln3.png"
 OUTPUT_PLOT_FILE = "local_search_plot_soln3.png"
 OUTPUT_EXCEL_FILE = "local_search_soln3.xlsx"
-HEATMAP_TITLE = "Solution 3: 1-Swap Local Search"
+HEATMAP_TITLE = "Solution 3: 1-Swap Local Search (100 Cameras)"
 
 # Optimization Parameters
 CAMERA_RADIUS = 5
 FOV_HALF_ANGLE = 45
 
 # Threshold to prevent swapping for negligible/zero gains
-MIN_IMPROVEMENT_THRESHOLD = 0.01 
+MIN_IMPROVEMENT_THRESHOLD = 0.0001 
 
 # Grid Settings
 TARGET_COLS = 80
@@ -3166,14 +3124,21 @@ for start_idx in range(0, num_cands, BATCH_SIZE):
 coverage_matrix = sparse.hstack(sparse_chunks).tocsc()
 
 # ==============================
-# 5. LOAD INITIAL SOLUTION
+# 5. LOAD INITIAL SOLUTION (TOP 100)
 # ==============================
 print(f"--- Loading Initial Solution from {INITIAL_SOLUTION_FILE} ---")
 try:
     df_initial = pd.read_excel(INITIAL_SOLUTION_FILE, sheet_name='Selected_Cameras')
+    
+    # --- CRITICAL STEP: Filter for the first 100 rows ---
+    print(f"Original solution size: {len(df_initial)}")
+    df_initial = df_initial.iloc[:100].copy()
+    print(f"Filtered solution size: {len(df_initial)} (Top 100)")
+    # ----------------------------------------------------
+
     initial_indices = df_initial['candidate_id'].values.tolist()
     current_solution_set = set(initial_indices)
-    print(f"Loaded {len(current_solution_set)} cameras from file.")
+    
 except Exception as e:
     print(f"ERROR: {e}")
     exit()
@@ -3346,7 +3311,1268 @@ plt.annotate(f"End: {history_obj_values[-1]:,.0f}", (history_iterations[-1], his
              textcoords="offset points", xytext=(-10, 10), ha='right', fontsize=9)
 
 # Update Title to include Coverage and Run Time
-plot_title = f"Local Search Trajectory\nFinal Coverage: {final_pct:.2f}% | Time: {run_time_seconds:.1f}s"
+plot_title = f"Local Search Trajectory (100 Cams)\nFinal Coverage: {final_pct:.2f}% | Time: {run_time_seconds:.1f}s"
+plt.title(plot_title, fontsize=14, fontweight='bold')
+plt.xlabel("Iteration Number")
+plt.ylabel("Total Weighted Coverage (Z)")
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.legend()
+plt.tight_layout()
+plt.savefig(OUTPUT_PLOT_FILE)
+plt.close()
+
+print(f"Trajectory plot saved: {OUTPUT_PLOT_FILE}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ==============================
+# 1. SETTINGS
+# ==============================
+INPUT_FILE = "Final_Dataset_MCLP.xlsx"
+SEED_FILE = "local_search_soln1.xlsx"  # CHANGE THIS for soln2 / soln3
+
+DEMAND_SHEET = "demand"
+CAMERA_SHEET = "camera"
+
+# Outputs
+OUTPUT_IMAGE_FILE = "pso_heatmap_soln1.png"
+OUTPUT_PLOT_FILE = "pso_trajectory_plot_soln1.png"
+OUTPUT_EXCEL_FILE = "pso_solution_soln1.xlsx"
+HEATMAP_TITLE = "PSO Solution 1: 100 Cameras"
+
+# Constraints
+CAMERA_RADIUS = 5
+FOV_HALF_ANGLE = 45
+NUM_CAMERAS_TO_SELECT = 100
+
+# Grid
+TARGET_COLS = 80
+TARGET_ROWS = 130
+SUBTRACT_ONE = 0 
+BATCH_SIZE = 1000 
+
+# --- RUIN & RECREATE SETTINGS ---
+SWARM_SIZE = 30           
+MAX_ITERATIONS = 50       
+W = 0.5                   
+C1 = 1.5                  
+C2 = 1.5   
+RUIN_PERCENT = 0.10       # Re-optimize 10% (10 cameras) every time
+MUTATION_PROB = 0.3       # 30% chance a particle undergoes Ruin & Recreate
+
+print("--- RUIN & RECREATE PSO STARTED ---")
+start_time = time.time()
+
+# ==============================
+# 2. LOAD DATA
+# ==============================
+df_demand = pd.read_excel(INPUT_FILE, sheet_name=DEMAND_SHEET)
+df_demand.columns = [c.strip().lower() for c in df_demand.columns]
+df_demand = df_demand[df_demand['weight'] > 0].copy()
+df_demand['x'] = df_demand['x'] - SUBTRACT_ONE
+df_demand['y'] = df_demand['y'] - SUBTRACT_ONE
+
+TOTAL_DEMAND_WEIGHT = df_demand['weight'].sum()
+demand_weights = df_demand['weight'].values
+
+df_cam_locs = pd.read_excel(INPUT_FILE, sheet_name=CAMERA_SHEET)
+df_cam_locs.columns = [c.strip().lower() for c in df_cam_locs.columns]
+df_cam_locs['x'] = df_cam_locs['x'] - SUBTRACT_ONE
+df_cam_locs['y'] = df_cam_locs['y'] - SUBTRACT_ONE
+
+print(f"Demand Points: {len(df_demand)} | Total Weight: {TOTAL_DEMAND_WEIGHT:,.4f}")
+
+# ==============================
+# 3. GENERATE CANDIDATES
+# ==============================
+candidates_list = []
+directions = [0, 90, 180, 270]
+
+for idx, row in df_cam_locs.iterrows():
+    for angle in directions:
+        candidates_list.append({
+            'loc_id': idx,
+            'x': row['x'],
+            'y': row['y'],
+            'dir_angle': angle
+        })
+
+df_candidates = pd.DataFrame(candidates_list)
+df_candidates['candidate_id'] = range(len(df_candidates))
+num_cands = len(df_candidates)
+print(f"Total Candidates Generated: {num_cands}")
+
+# ==============================
+# 4. COMPUTE COVERAGE MATRIX
+# ==============================
+print("Computing Coverage Matrix...")
+dem_x = df_demand['x'].values[:, np.newaxis]
+dem_y = df_demand['y'].values[:, np.newaxis]
+sparse_chunks = []
+
+for start_idx in range(0, num_cands, BATCH_SIZE):
+    end_idx = min(start_idx + BATCH_SIZE, num_cands)
+    batch_df = df_candidates.iloc[start_idx:end_idx]
+    cand_x = batch_df['x'].values[np.newaxis, :]
+    cand_y = batch_df['y'].values[np.newaxis, :]
+    cand_dirs = batch_df['dir_angle'].values[np.newaxis, :]
+    
+    dx = dem_x - cand_x
+    dy = dem_y - cand_y
+    distances = np.sqrt(dx**2 + dy**2)
+    point_angles = np.degrees(np.arctan2(dx, -dy))
+    point_angles = (point_angles + 360) % 360
+    angle_diff = np.abs(point_angles - cand_dirs)
+    angle_diff = np.minimum(angle_diff, 360 - angle_diff)
+    
+    mask = (distances <= CAMERA_RADIUS) & (angle_diff <= FOV_HALF_ANGLE) & (distances > 0)
+    sparse_chunks.append(sparse.csc_matrix(mask))
+
+coverage_matrix = sparse.hstack(sparse_chunks).tocsc()
+print("Coverage Matrix Computed.")
+
+# ==============================
+# 5. INITIALIZE SWARM
+# ==============================
+print(f"\n--- Initializing Swarm ---")
+
+X = np.random.uniform(0.0, 0.4, (SWARM_SIZE, num_cands))
+
+# Load Seed
+seed_indices = []
+try:
+    print(f"Loading seed from: {SEED_FILE}")
+    df_seed = pd.read_excel(SEED_FILE, sheet_name='Selected_Cameras')
+    seed_indices = df_seed['candidate_id'].values[:NUM_CAMERAS_TO_SELECT].tolist()
+    
+    # Init Particle 0 exact
+    X[0, seed_indices] = 1.0
+    
+    # Init others with variation
+    for i in range(1, SWARM_SIZE):
+        X[i, seed_indices] = np.random.uniform(0.8, 1.0, len(seed_indices))
+        # Randomly remove 10% to let Ruin & Recreate fill them
+        drop_indices = random.sample(seed_indices, int(NUM_CAMERAS_TO_SELECT * 0.1))
+        X[i, drop_indices] = np.random.uniform(0.0, 0.2, len(drop_indices))
+        
+    print(f" >> Seed loaded and variations created.")
+except Exception as e:
+    print(f" >> ERROR loading seed: {e}. Using random start.")
+
+V = np.random.uniform(-0.1, 0.1, (SWARM_SIZE, num_cands))
+
+P_BEST_POS = X.copy()
+P_BEST_SCORES = np.zeros(SWARM_SIZE)
+G_BEST_POS = np.zeros(num_cands)
+G_BEST_SCORE = -1.0
+G_BEST_INDICES = []
+
+def evaluate_particle(priority_vector):
+    top_k_indices = np.argpartition(priority_vector, -NUM_CAMERAS_TO_SELECT)[-NUM_CAMERAS_TO_SELECT:]
+    selected_matrix = coverage_matrix[:, top_k_indices]
+    coverage_counts = np.array(selected_matrix.sum(axis=1)).flatten()
+    covered_mask = coverage_counts > 0
+    total_coverage = demand_weights[covered_mask].sum()
+    return total_coverage, top_k_indices, coverage_counts
+
+# Initial Eval
+print("Evaluating initial swarm...")
+for i in range(SWARM_SIZE):
+    score, indices, _ = evaluate_particle(X[i])
+    P_BEST_SCORES[i] = score
+    if score > G_BEST_SCORE:
+        G_BEST_SCORE = score
+        G_BEST_POS = X[i].copy()
+        G_BEST_INDICES = indices
+
+print(f"Initial Global Best Z: {G_BEST_SCORE:,.4f}")
+
+# ==============================
+# 6. RUIN & RECREATE LOGIC
+# ==============================
+
+def ruin_and_recreate(current_indices, counts):
+    """
+    1. RUIN: Drop cameras that provide the least UNIQUE coverage.
+    2. RECREATE: Greedily add cameras that cover the most UNCOVERED weight.
+    """
+    current_set = set(current_indices)
+    
+    # --- STEP 1: SMART RUIN ---
+    # Find cameras to remove (those with lowest unique contribution)
+    candidates_to_remove = []
+    
+    for cam_idx in current_indices:
+        pts = coverage_matrix[:, cam_idx].indices
+        # Unique contribution: Weight of points where count == 1 (only this camera)
+        unique_mask = (counts[pts] == 1)
+        unique_val = demand_weights[pts[unique_mask]].sum()
+        candidates_to_remove.append((cam_idx, unique_val))
+    
+    # Sort ascending (lowest contribution first)
+    candidates_to_remove.sort(key=lambda x: x[1])
+    
+    # Drop the bottom N (Ruin Percent)
+    num_to_drop = int(NUM_CAMERAS_TO_SELECT * RUIN_PERCENT)
+    dropped_cams = [x[0] for x in candidates_to_remove[:num_to_drop]]
+    
+    for cam in dropped_cams:
+        current_set.remove(cam)
+        
+    # Recalculate coverage mask after removal
+    temp_indices = list(current_set)
+    sel_mat = coverage_matrix[:, temp_indices]
+    temp_counts = np.array(sel_mat.sum(axis=1)).flatten()
+    current_uncovered_mask = (temp_counts == 0)
+    current_uncovered_weight = demand_weights.copy()
+    current_uncovered_weight[~current_uncovered_mask] = 0 # Zero out already covered
+    
+    # --- STEP 2: GREEDY RECREATE ---
+    # We need to pick 'num_to_drop' new cameras
+    added_cams = []
+    
+    # To speed this up, we only check a subset of candidates or use matrix math
+    # Here we do a fast matrix multiplication to find best gains
+    # Gain = coverage_matrix.T @ current_uncovered_weight
+    
+    for _ in range(num_to_drop):
+        # Calculate gains for ALL candidates against CURRENT uncovered weight
+        # This is the "Greedy" step
+        gains = coverage_matrix.T @ current_uncovered_weight
+        
+        # We must ignore candidates already in the set
+        # Set their gain to -1
+        gains[temp_indices] = -1
+        gains[added_cams] = -1
+        
+        # Pick best
+        best_cam = np.argmax(gains)
+        
+        if gains[best_cam] <= 0:
+            break # No more gains possible
+            
+        added_cams.append(best_cam)
+        
+        # Update weights (remove covered points)
+        new_covered_pts = coverage_matrix[:, best_cam].indices
+        current_uncovered_weight[new_covered_pts] = 0
+        
+    return dropped_cams, added_cams
+
+# ==============================
+# 7. OPTIMIZATION LOOP
+# ==============================
+print(f"\n--- Starting Loop ({MAX_ITERATIONS} Iterations) ---")
+
+history_iterations = [0]
+history_obj_values = [G_BEST_SCORE]
+
+for iteration in range(1, MAX_ITERATIONS + 1):
+    
+    for i in range(SWARM_SIZE):
+        # Standard PSO Movement
+        r1 = np.random.rand(num_cands)
+        r2 = np.random.rand(num_cands)
+        V[i] = W * V[i] + C1 * r1 * (P_BEST_POS[i] - X[i]) + C2 * r2 * (G_BEST_POS - X[i])
+        X[i] = X[i] + V[i]
+        
+        # --- RUIN & RECREATE MUTATION ---
+        # If we hit probability, we IGNORE velocity and do a smart repair
+        if random.random() < MUTATION_PROB:
+            # 1. Evaluate current pos to get counts
+            _, curr_indices, counts = evaluate_particle(X[i])
+            
+            # 2. Run heuristic
+            dropped, added = ruin_and_recreate(curr_indices, counts)
+            
+            # 3. Apply to Priority Vector
+            if len(dropped) > 0:
+                X[i, dropped] = 0.0  # Force out
+                X[i, added] = 1.0    # Force in
+        
+        # Clamp
+        X[i] = np.clip(X[i], 0.0, 1.0)
+        
+        # Eval
+        score, indices, _ = evaluate_particle(X[i])
+        
+        if score > P_BEST_SCORES[i]:
+            P_BEST_SCORES[i] = score
+            P_BEST_POS[i] = X[i].copy()
+            
+        if score > G_BEST_SCORE:
+            diff = score - G_BEST_SCORE
+            if diff > 0.0001:
+                print(f"  > IMPROVEMENT at Iter {iteration} (P{i}): +{diff:.4f} | Z: {score:,.4f}")
+                G_BEST_SCORE = score
+                G_BEST_POS = X[i].copy()
+                G_BEST_INDICES = indices
+
+    history_iterations.append(iteration)
+    history_obj_values.append(G_BEST_SCORE)
+    
+    if iteration % 5 == 0:
+        print(f"  Iter {iteration}/{MAX_ITERATIONS} | Best Z: {G_BEST_SCORE:,.4f}")
+
+# ==============================
+# 8. EXCEL SAVE (SAME AS BEFORE)
+# ==============================
+final_pct = (G_BEST_SCORE / TOTAL_DEMAND_WEIGHT) * 100
+end_time = time.time()
+run_time = end_time - start_time
+
+print("-" * 40)
+print(f"FINAL Z (PSO):      {G_BEST_SCORE:,.4f} ({final_pct:.2f}%)")
+print(f"TOTAL RUN TIME:     {run_time:.2f} seconds")
+print("-" * 40)
+
+final_indices = G_BEST_INDICES
+selected_matrix_final = coverage_matrix[:, final_indices]
+final_coverage_counts = np.array(selected_matrix_final.sum(axis=1)).flatten()
+
+df_results_cam = df_candidates.iloc[final_indices].copy()
+df_results_cam = df_results_cam[['candidate_id', 'loc_id', 'x', 'y', 'dir_angle']]
+df_results_cam.rename(columns={'dir_angle': 'direction_degrees'}, inplace=True)
+
+df_results_dem = df_demand.copy()
+df_results_dem['cameras_covering'] = final_coverage_counts 
+df_results_dem['is_covered'] = np.where(df_results_dem['cameras_covering'] > 0, 'Yes', 'No')
+
+with pd.ExcelWriter(OUTPUT_EXCEL_FILE) as writer:
+    df_results_cam.to_excel(writer, sheet_name='Selected_Cameras', index=False)
+    df_results_dem.to_excel(writer, sheet_name='Demand_Coverage', index=False)
+print(f"Excel saved: {OUTPUT_EXCEL_FILE}")
+
+# ==============================
+# 9. HEATMAP (SAME AS BEFORE)
+# ==============================
+final_heatmap_grid = np.zeros((TARGET_ROWS, TARGET_COLS))
+dem_x_flat = df_demand['x'].values
+dem_y_flat = df_demand['y'].values
+
+for i, count in enumerate(final_coverage_counts):
+    if count > 0:
+        r, c = int(dem_y_flat[i]), int(dem_x_flat[i])
+        if 0 <= r < TARGET_ROWS and 0 <= c < TARGET_COLS:
+            final_heatmap_grid[r, c] = count
+
+aspect_ratio = TARGET_ROWS / TARGET_COLS
+base_width = 10 
+fig_height = base_width * aspect_ratio
+fig, ax = plt.subplots(figsize=(base_width, fig_height), dpi=120)
+
+ax.set_xlim(0, TARGET_COLS)
+ax.set_ylim(TARGET_ROWS, 0) 
+ax.xaxis.tick_top()
+ax.xaxis.set_label_position('top')
+ax.set_xticks(np.arange(0, TARGET_COLS + 1, 10))
+ax.set_yticks(np.arange(0, TARGET_ROWS + 1, 10))
+ax.set_xticks(np.arange(0.5, TARGET_COLS, 1), minor=True)
+ax.set_yticks(np.arange(0.5, TARGET_ROWS, 1), minor=True)
+ax.grid(which='minor', color='gray', linestyle='-', linewidth=0.5)
+ax.tick_params(which='minor', bottom=False, left=False)
+
+colors = ['#ffffff00', '#800080', '#00ced1', '#ffd700'] 
+cmap = ListedColormap(colors)
+bounds = [0, 1, 2, 3, 100]
+norm = BoundaryNorm(bounds, cmap.N)
+ax.imshow(final_heatmap_grid, extent=[0, TARGET_COLS, TARGET_ROWS, 0], cmap=cmap, norm=norm, interpolation='nearest', zorder=1)
+
+legend_elements = [Line2D([0], [0], marker='s', color='w', markerfacecolor='#800080', markersize=10, label='1 Cam'),
+                   Line2D([0], [0], marker='s', color='w', markerfacecolor='#00ced1', markersize=10, label='2 Cams'),
+                   Line2D([0], [0], marker='s', color='w', markerfacecolor='#ffd700', markersize=10, label='3+ Cams')]
+ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0.)
+
+title_text = f"{HEATMAP_TITLE}\nCoverage: {final_pct:.2f}% | Run Time: {run_time:.1f}s"
+ax.set_title(title_text, fontsize=14, fontweight='bold', pad=20)
+plt.tight_layout()
+plt.savefig(OUTPUT_IMAGE_FILE, bbox_inches='tight')
+plt.close()
+print(f"Heatmap saved: {OUTPUT_IMAGE_FILE}")
+
+# ==============================
+# 10. PLOT (SAME AS BEFORE)
+# ==============================
+plt.figure(figsize=(10, 6), dpi=100)
+plt.plot(history_iterations, history_obj_values, marker='o', linestyle='-', color='#e74c3c', markersize=4, label='Global Best (Z)')
+
+if history_obj_values:
+    plt.annotate(f"Start: {history_obj_values[0]:,.0f}", (history_iterations[0], history_obj_values[0]), 
+                 textcoords="offset points", xytext=(10, -10), ha='left', fontsize=9)
+    plt.annotate(f"End: {history_obj_values[-1]:,.0f}", (history_iterations[-1], history_obj_values[-1]), 
+                 textcoords="offset points", xytext=(-10, 10), ha='right', fontsize=9)
+
+plot_title = f"PSO Convergence (100 Cams)\nFinal Coverage: {final_pct:.2f}% | Time: {run_time:.1f}s"
+plt.title(plot_title, fontsize=14, fontweight='bold')
+plt.xlabel("Iteration Number")
+plt.ylabel("Total Weighted Coverage (Z)")
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.legend()
+plt.tight_layout()
+plt.savefig(OUTPUT_PLOT_FILE)
+plt.close()
+
+print(f"Trajectory plot saved: {OUTPUT_PLOT_FILE}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ==============================
+# 1. SETTINGS
+# ==============================
+INPUT_FILE = "Final_Dataset_MCLP.xlsx"
+SEED_FILE = "local_search_soln2.xlsx"  # CHANGE THIS for soln2 / soln3
+
+DEMAND_SHEET = "demand"
+CAMERA_SHEET = "camera"
+
+# Outputs
+OUTPUT_IMAGE_FILE = "pso_heatmap_soln2.png"
+OUTPUT_PLOT_FILE = "pso_trajectory_plot_soln2.png"
+OUTPUT_EXCEL_FILE = "pso_solution_soln2.xlsx"
+HEATMAP_TITLE = "PSO Solution 2: 100 Cameras"
+
+# Constraints
+CAMERA_RADIUS = 5
+FOV_HALF_ANGLE = 45
+NUM_CAMERAS_TO_SELECT = 100
+
+# Grid
+TARGET_COLS = 80
+TARGET_ROWS = 130
+SUBTRACT_ONE = 0 
+BATCH_SIZE = 1000 
+
+# --- RUIN & RECREATE SETTINGS ---
+SWARM_SIZE = 30           
+MAX_ITERATIONS = 50       
+W = 0.5                   
+C1 = 1.5                  
+C2 = 1.5   
+RUIN_PERCENT = 0.10       # Re-optimize 10% (10 cameras) every time
+MUTATION_PROB = 0.3       # 30% chance a particle undergoes Ruin & Recreate
+
+print("--- RUIN & RECREATE PSO STARTED ---")
+start_time = time.time()
+
+# ==============================
+# 2. LOAD DATA
+# ==============================
+df_demand = pd.read_excel(INPUT_FILE, sheet_name=DEMAND_SHEET)
+df_demand.columns = [c.strip().lower() for c in df_demand.columns]
+df_demand = df_demand[df_demand['weight'] > 0].copy()
+df_demand['x'] = df_demand['x'] - SUBTRACT_ONE
+df_demand['y'] = df_demand['y'] - SUBTRACT_ONE
+
+TOTAL_DEMAND_WEIGHT = df_demand['weight'].sum()
+demand_weights = df_demand['weight'].values
+
+df_cam_locs = pd.read_excel(INPUT_FILE, sheet_name=CAMERA_SHEET)
+df_cam_locs.columns = [c.strip().lower() for c in df_cam_locs.columns]
+df_cam_locs['x'] = df_cam_locs['x'] - SUBTRACT_ONE
+df_cam_locs['y'] = df_cam_locs['y'] - SUBTRACT_ONE
+
+print(f"Demand Points: {len(df_demand)} | Total Weight: {TOTAL_DEMAND_WEIGHT:,.4f}")
+
+# ==============================
+# 3. GENERATE CANDIDATES
+# ==============================
+candidates_list = []
+directions = [0, 90, 180, 270]
+
+for idx, row in df_cam_locs.iterrows():
+    for angle in directions:
+        candidates_list.append({
+            'loc_id': idx,
+            'x': row['x'],
+            'y': row['y'],
+            'dir_angle': angle
+        })
+
+df_candidates = pd.DataFrame(candidates_list)
+df_candidates['candidate_id'] = range(len(df_candidates))
+num_cands = len(df_candidates)
+print(f"Total Candidates Generated: {num_cands}")
+
+# ==============================
+# 4. COMPUTE COVERAGE MATRIX
+# ==============================
+print("Computing Coverage Matrix...")
+dem_x = df_demand['x'].values[:, np.newaxis]
+dem_y = df_demand['y'].values[:, np.newaxis]
+sparse_chunks = []
+
+for start_idx in range(0, num_cands, BATCH_SIZE):
+    end_idx = min(start_idx + BATCH_SIZE, num_cands)
+    batch_df = df_candidates.iloc[start_idx:end_idx]
+    cand_x = batch_df['x'].values[np.newaxis, :]
+    cand_y = batch_df['y'].values[np.newaxis, :]
+    cand_dirs = batch_df['dir_angle'].values[np.newaxis, :]
+    
+    dx = dem_x - cand_x
+    dy = dem_y - cand_y
+    distances = np.sqrt(dx**2 + dy**2)
+    point_angles = np.degrees(np.arctan2(dx, -dy))
+    point_angles = (point_angles + 360) % 360
+    angle_diff = np.abs(point_angles - cand_dirs)
+    angle_diff = np.minimum(angle_diff, 360 - angle_diff)
+    
+    mask = (distances <= CAMERA_RADIUS) & (angle_diff <= FOV_HALF_ANGLE) & (distances > 0)
+    sparse_chunks.append(sparse.csc_matrix(mask))
+
+coverage_matrix = sparse.hstack(sparse_chunks).tocsc()
+print("Coverage Matrix Computed.")
+
+# ==============================
+# 5. INITIALIZE SWARM
+# ==============================
+print(f"\n--- Initializing Swarm ---")
+
+X = np.random.uniform(0.0, 0.4, (SWARM_SIZE, num_cands))
+
+# Load Seed
+seed_indices = []
+try:
+    print(f"Loading seed from: {SEED_FILE}")
+    df_seed = pd.read_excel(SEED_FILE, sheet_name='Selected_Cameras')
+    seed_indices = df_seed['candidate_id'].values[:NUM_CAMERAS_TO_SELECT].tolist()
+    
+    # Init Particle 0 exact
+    X[0, seed_indices] = 1.0
+    
+    # Init others with variation
+    for i in range(1, SWARM_SIZE):
+        X[i, seed_indices] = np.random.uniform(0.8, 1.0, len(seed_indices))
+        # Randomly remove 10% to let Ruin & Recreate fill them
+        drop_indices = random.sample(seed_indices, int(NUM_CAMERAS_TO_SELECT * 0.1))
+        X[i, drop_indices] = np.random.uniform(0.0, 0.2, len(drop_indices))
+        
+    print(f" >> Seed loaded and variations created.")
+except Exception as e:
+    print(f" >> ERROR loading seed: {e}. Using random start.")
+
+V = np.random.uniform(-0.1, 0.1, (SWARM_SIZE, num_cands))
+
+P_BEST_POS = X.copy()
+P_BEST_SCORES = np.zeros(SWARM_SIZE)
+G_BEST_POS = np.zeros(num_cands)
+G_BEST_SCORE = -1.0
+G_BEST_INDICES = []
+
+def evaluate_particle(priority_vector):
+    top_k_indices = np.argpartition(priority_vector, -NUM_CAMERAS_TO_SELECT)[-NUM_CAMERAS_TO_SELECT:]
+    selected_matrix = coverage_matrix[:, top_k_indices]
+    coverage_counts = np.array(selected_matrix.sum(axis=1)).flatten()
+    covered_mask = coverage_counts > 0
+    total_coverage = demand_weights[covered_mask].sum()
+    return total_coverage, top_k_indices, coverage_counts
+
+# Initial Eval
+print("Evaluating initial swarm...")
+for i in range(SWARM_SIZE):
+    score, indices, _ = evaluate_particle(X[i])
+    P_BEST_SCORES[i] = score
+    if score > G_BEST_SCORE:
+        G_BEST_SCORE = score
+        G_BEST_POS = X[i].copy()
+        G_BEST_INDICES = indices
+
+print(f"Initial Global Best Z: {G_BEST_SCORE:,.4f}")
+
+# ==============================
+# 6. RUIN & RECREATE LOGIC
+# ==============================
+
+def ruin_and_recreate(current_indices, counts):
+    """
+    1. RUIN: Drop cameras that provide the least UNIQUE coverage.
+    2. RECREATE: Greedily add cameras that cover the most UNCOVERED weight.
+    """
+    current_set = set(current_indices)
+    
+    # --- STEP 1: SMART RUIN ---
+    # Find cameras to remove (those with lowest unique contribution)
+    candidates_to_remove = []
+    
+    for cam_idx in current_indices:
+        pts = coverage_matrix[:, cam_idx].indices
+        # Unique contribution: Weight of points where count == 1 (only this camera)
+        unique_mask = (counts[pts] == 1)
+        unique_val = demand_weights[pts[unique_mask]].sum()
+        candidates_to_remove.append((cam_idx, unique_val))
+    
+    # Sort ascending (lowest contribution first)
+    candidates_to_remove.sort(key=lambda x: x[1])
+    
+    # Drop the bottom N (Ruin Percent)
+    num_to_drop = int(NUM_CAMERAS_TO_SELECT * RUIN_PERCENT)
+    dropped_cams = [x[0] for x in candidates_to_remove[:num_to_drop]]
+    
+    for cam in dropped_cams:
+        current_set.remove(cam)
+        
+    # Recalculate coverage mask after removal
+    temp_indices = list(current_set)
+    sel_mat = coverage_matrix[:, temp_indices]
+    temp_counts = np.array(sel_mat.sum(axis=1)).flatten()
+    current_uncovered_mask = (temp_counts == 0)
+    current_uncovered_weight = demand_weights.copy()
+    current_uncovered_weight[~current_uncovered_mask] = 0 # Zero out already covered
+    
+    # --- STEP 2: GREEDY RECREATE ---
+    # We need to pick 'num_to_drop' new cameras
+    added_cams = []
+    
+    # To speed this up, we only check a subset of candidates or use matrix math
+    # Here we do a fast matrix multiplication to find best gains
+    # Gain = coverage_matrix.T @ current_uncovered_weight
+    
+    for _ in range(num_to_drop):
+        # Calculate gains for ALL candidates against CURRENT uncovered weight
+        # This is the "Greedy" step
+        gains = coverage_matrix.T @ current_uncovered_weight
+        
+        # We must ignore candidates already in the set
+        # Set their gain to -1
+        gains[temp_indices] = -1
+        gains[added_cams] = -1
+        
+        # Pick best
+        best_cam = np.argmax(gains)
+        
+        if gains[best_cam] <= 0:
+            break # No more gains possible
+            
+        added_cams.append(best_cam)
+        
+        # Update weights (remove covered points)
+        new_covered_pts = coverage_matrix[:, best_cam].indices
+        current_uncovered_weight[new_covered_pts] = 0
+        
+    return dropped_cams, added_cams
+
+# ==============================
+# 7. OPTIMIZATION LOOP
+# ==============================
+print(f"\n--- Starting Loop ({MAX_ITERATIONS} Iterations) ---")
+
+history_iterations = [0]
+history_obj_values = [G_BEST_SCORE]
+
+for iteration in range(1, MAX_ITERATIONS + 1):
+    
+    for i in range(SWARM_SIZE):
+        # Standard PSO Movement
+        r1 = np.random.rand(num_cands)
+        r2 = np.random.rand(num_cands)
+        V[i] = W * V[i] + C1 * r1 * (P_BEST_POS[i] - X[i]) + C2 * r2 * (G_BEST_POS - X[i])
+        X[i] = X[i] + V[i]
+        
+        # --- RUIN & RECREATE MUTATION ---
+        # If we hit probability, we IGNORE velocity and do a smart repair
+        if random.random() < MUTATION_PROB:
+            # 1. Evaluate current pos to get counts
+            _, curr_indices, counts = evaluate_particle(X[i])
+            
+            # 2. Run heuristic
+            dropped, added = ruin_and_recreate(curr_indices, counts)
+            
+            # 3. Apply to Priority Vector
+            if len(dropped) > 0:
+                X[i, dropped] = 0.0  # Force out
+                X[i, added] = 1.0    # Force in
+        
+        # Clamp
+        X[i] = np.clip(X[i], 0.0, 1.0)
+        
+        # Eval
+        score, indices, _ = evaluate_particle(X[i])
+        
+        if score > P_BEST_SCORES[i]:
+            P_BEST_SCORES[i] = score
+            P_BEST_POS[i] = X[i].copy()
+            
+        if score > G_BEST_SCORE:
+            diff = score - G_BEST_SCORE
+            if diff > 0.0001:
+                print(f"  > IMPROVEMENT at Iter {iteration} (P{i}): +{diff:.4f} | Z: {score:,.4f}")
+                G_BEST_SCORE = score
+                G_BEST_POS = X[i].copy()
+                G_BEST_INDICES = indices
+
+    history_iterations.append(iteration)
+    history_obj_values.append(G_BEST_SCORE)
+    
+    if iteration % 5 == 0:
+        print(f"  Iter {iteration}/{MAX_ITERATIONS} | Best Z: {G_BEST_SCORE:,.4f}")
+
+# ==============================
+# 8. EXCEL SAVE (SAME AS BEFORE)
+# ==============================
+final_pct = (G_BEST_SCORE / TOTAL_DEMAND_WEIGHT) * 100
+end_time = time.time()
+run_time = end_time - start_time
+
+print("-" * 40)
+print(f"FINAL Z (PSO):      {G_BEST_SCORE:,.4f} ({final_pct:.2f}%)")
+print(f"TOTAL RUN TIME:     {run_time:.2f} seconds")
+print("-" * 40)
+
+final_indices = G_BEST_INDICES
+selected_matrix_final = coverage_matrix[:, final_indices]
+final_coverage_counts = np.array(selected_matrix_final.sum(axis=1)).flatten()
+
+df_results_cam = df_candidates.iloc[final_indices].copy()
+df_results_cam = df_results_cam[['candidate_id', 'loc_id', 'x', 'y', 'dir_angle']]
+df_results_cam.rename(columns={'dir_angle': 'direction_degrees'}, inplace=True)
+
+df_results_dem = df_demand.copy()
+df_results_dem['cameras_covering'] = final_coverage_counts 
+df_results_dem['is_covered'] = np.where(df_results_dem['cameras_covering'] > 0, 'Yes', 'No')
+
+with pd.ExcelWriter(OUTPUT_EXCEL_FILE) as writer:
+    df_results_cam.to_excel(writer, sheet_name='Selected_Cameras', index=False)
+    df_results_dem.to_excel(writer, sheet_name='Demand_Coverage', index=False)
+print(f"Excel saved: {OUTPUT_EXCEL_FILE}")
+
+# ==============================
+# 9. HEATMAP (SAME AS BEFORE)
+# ==============================
+final_heatmap_grid = np.zeros((TARGET_ROWS, TARGET_COLS))
+dem_x_flat = df_demand['x'].values
+dem_y_flat = df_demand['y'].values
+
+for i, count in enumerate(final_coverage_counts):
+    if count > 0:
+        r, c = int(dem_y_flat[i]), int(dem_x_flat[i])
+        if 0 <= r < TARGET_ROWS and 0 <= c < TARGET_COLS:
+            final_heatmap_grid[r, c] = count
+
+aspect_ratio = TARGET_ROWS / TARGET_COLS
+base_width = 10 
+fig_height = base_width * aspect_ratio
+fig, ax = plt.subplots(figsize=(base_width, fig_height), dpi=120)
+
+ax.set_xlim(0, TARGET_COLS)
+ax.set_ylim(TARGET_ROWS, 0) 
+ax.xaxis.tick_top()
+ax.xaxis.set_label_position('top')
+ax.set_xticks(np.arange(0, TARGET_COLS + 1, 10))
+ax.set_yticks(np.arange(0, TARGET_ROWS + 1, 10))
+ax.set_xticks(np.arange(0.5, TARGET_COLS, 1), minor=True)
+ax.set_yticks(np.arange(0.5, TARGET_ROWS, 1), minor=True)
+ax.grid(which='minor', color='gray', linestyle='-', linewidth=0.5)
+ax.tick_params(which='minor', bottom=False, left=False)
+
+colors = ['#ffffff00', '#800080', '#00ced1', '#ffd700'] 
+cmap = ListedColormap(colors)
+bounds = [0, 1, 2, 3, 100]
+norm = BoundaryNorm(bounds, cmap.N)
+ax.imshow(final_heatmap_grid, extent=[0, TARGET_COLS, TARGET_ROWS, 0], cmap=cmap, norm=norm, interpolation='nearest', zorder=1)
+
+legend_elements = [Line2D([0], [0], marker='s', color='w', markerfacecolor='#800080', markersize=10, label='1 Cam'),
+                   Line2D([0], [0], marker='s', color='w', markerfacecolor='#00ced1', markersize=10, label='2 Cams'),
+                   Line2D([0], [0], marker='s', color='w', markerfacecolor='#ffd700', markersize=10, label='3+ Cams')]
+ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0.)
+
+title_text = f"{HEATMAP_TITLE}\nCoverage: {final_pct:.2f}% | Run Time: {run_time:.1f}s"
+ax.set_title(title_text, fontsize=14, fontweight='bold', pad=20)
+plt.tight_layout()
+plt.savefig(OUTPUT_IMAGE_FILE, bbox_inches='tight')
+plt.close()
+print(f"Heatmap saved: {OUTPUT_IMAGE_FILE}")
+
+# ==============================
+# 10. PLOT (SAME AS BEFORE)
+# ==============================
+plt.figure(figsize=(10, 6), dpi=100)
+plt.plot(history_iterations, history_obj_values, marker='o', linestyle='-', color='#e74c3c', markersize=4, label='Global Best (Z)')
+
+if history_obj_values:
+    plt.annotate(f"Start: {history_obj_values[0]:,.0f}", (history_iterations[0], history_obj_values[0]), 
+                 textcoords="offset points", xytext=(10, -10), ha='left', fontsize=9)
+    plt.annotate(f"End: {history_obj_values[-1]:,.0f}", (history_iterations[-1], history_obj_values[-1]), 
+                 textcoords="offset points", xytext=(-10, 10), ha='right', fontsize=9)
+
+plot_title = f"PSO Convergence (100 Cams)\nFinal Coverage: {final_pct:.2f}% | Time: {run_time:.1f}s"
+plt.title(plot_title, fontsize=14, fontweight='bold')
+plt.xlabel("Iteration Number")
+plt.ylabel("Total Weighted Coverage (Z)")
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.legend()
+plt.tight_layout()
+plt.savefig(OUTPUT_PLOT_FILE)
+plt.close()
+
+print(f"Trajectory plot saved: {OUTPUT_PLOT_FILE}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ==============================
+# 1. SETTINGS
+# ==============================
+INPUT_FILE = "Final_Dataset_MCLP.xlsx"
+SEED_FILE = "local_search_soln3.xlsx"  # CHANGE THIS for soln2 / soln3
+
+DEMAND_SHEET = "demand"
+CAMERA_SHEET = "camera"
+
+# Outputs
+OUTPUT_IMAGE_FILE = "pso_heatmap_soln3.png"
+OUTPUT_PLOT_FILE = "pso_trajectory_plot_soln3.png"
+OUTPUT_EXCEL_FILE = "pso_solution_soln3.xlsx"
+HEATMAP_TITLE = "PSO Solution 3: 100 Cameras"
+
+# Constraints
+CAMERA_RADIUS = 5
+FOV_HALF_ANGLE = 45
+NUM_CAMERAS_TO_SELECT = 100
+
+# Grid
+TARGET_COLS = 80
+TARGET_ROWS = 130
+SUBTRACT_ONE = 0 
+BATCH_SIZE = 1000 
+
+# --- RUIN & RECREATE SETTINGS ---
+SWARM_SIZE = 30           
+MAX_ITERATIONS = 50       
+W = 0.5                   
+C1 = 1.5                  
+C2 = 1.5   
+RUIN_PERCENT = 0.10       # Re-optimize 10% (10 cameras) every time
+MUTATION_PROB = 0.3       # 30% chance a particle undergoes Ruin & Recreate
+
+print("--- RUIN & RECREATE PSO STARTED ---")
+start_time = time.time()
+
+# ==============================
+# 2. LOAD DATA
+# ==============================
+df_demand = pd.read_excel(INPUT_FILE, sheet_name=DEMAND_SHEET)
+df_demand.columns = [c.strip().lower() for c in df_demand.columns]
+df_demand = df_demand[df_demand['weight'] > 0].copy()
+df_demand['x'] = df_demand['x'] - SUBTRACT_ONE
+df_demand['y'] = df_demand['y'] - SUBTRACT_ONE
+
+TOTAL_DEMAND_WEIGHT = df_demand['weight'].sum()
+demand_weights = df_demand['weight'].values
+
+df_cam_locs = pd.read_excel(INPUT_FILE, sheet_name=CAMERA_SHEET)
+df_cam_locs.columns = [c.strip().lower() for c in df_cam_locs.columns]
+df_cam_locs['x'] = df_cam_locs['x'] - SUBTRACT_ONE
+df_cam_locs['y'] = df_cam_locs['y'] - SUBTRACT_ONE
+
+print(f"Demand Points: {len(df_demand)} | Total Weight: {TOTAL_DEMAND_WEIGHT:,.4f}")
+
+# ==============================
+# 3. GENERATE CANDIDATES
+# ==============================
+candidates_list = []
+directions = [0, 90, 180, 270]
+
+for idx, row in df_cam_locs.iterrows():
+    for angle in directions:
+        candidates_list.append({
+            'loc_id': idx,
+            'x': row['x'],
+            'y': row['y'],
+            'dir_angle': angle
+        })
+
+df_candidates = pd.DataFrame(candidates_list)
+df_candidates['candidate_id'] = range(len(df_candidates))
+num_cands = len(df_candidates)
+print(f"Total Candidates Generated: {num_cands}")
+
+# ==============================
+# 4. COMPUTE COVERAGE MATRIX
+# ==============================
+print("Computing Coverage Matrix...")
+dem_x = df_demand['x'].values[:, np.newaxis]
+dem_y = df_demand['y'].values[:, np.newaxis]
+sparse_chunks = []
+
+for start_idx in range(0, num_cands, BATCH_SIZE):
+    end_idx = min(start_idx + BATCH_SIZE, num_cands)
+    batch_df = df_candidates.iloc[start_idx:end_idx]
+    cand_x = batch_df['x'].values[np.newaxis, :]
+    cand_y = batch_df['y'].values[np.newaxis, :]
+    cand_dirs = batch_df['dir_angle'].values[np.newaxis, :]
+    
+    dx = dem_x - cand_x
+    dy = dem_y - cand_y
+    distances = np.sqrt(dx**2 + dy**2)
+    point_angles = np.degrees(np.arctan2(dx, -dy))
+    point_angles = (point_angles + 360) % 360
+    angle_diff = np.abs(point_angles - cand_dirs)
+    angle_diff = np.minimum(angle_diff, 360 - angle_diff)
+    
+    mask = (distances <= CAMERA_RADIUS) & (angle_diff <= FOV_HALF_ANGLE) & (distances > 0)
+    sparse_chunks.append(sparse.csc_matrix(mask))
+
+coverage_matrix = sparse.hstack(sparse_chunks).tocsc()
+print("Coverage Matrix Computed.")
+
+# ==============================
+# 5. INITIALIZE SWARM
+# ==============================
+print(f"\n--- Initializing Swarm ---")
+
+X = np.random.uniform(0.0, 0.4, (SWARM_SIZE, num_cands))
+
+# Load Seed
+seed_indices = []
+try:
+    print(f"Loading seed from: {SEED_FILE}")
+    df_seed = pd.read_excel(SEED_FILE, sheet_name='Selected_Cameras')
+    seed_indices = df_seed['candidate_id'].values[:NUM_CAMERAS_TO_SELECT].tolist()
+    
+    # Init Particle 0 exact
+    X[0, seed_indices] = 1.0
+    
+    # Init others with variation
+    for i in range(1, SWARM_SIZE):
+        X[i, seed_indices] = np.random.uniform(0.8, 1.0, len(seed_indices))
+        # Randomly remove 10% to let Ruin & Recreate fill them
+        drop_indices = random.sample(seed_indices, int(NUM_CAMERAS_TO_SELECT * 0.1))
+        X[i, drop_indices] = np.random.uniform(0.0, 0.2, len(drop_indices))
+        
+    print(f" >> Seed loaded and variations created.")
+except Exception as e:
+    print(f" >> ERROR loading seed: {e}. Using random start.")
+
+V = np.random.uniform(-0.1, 0.1, (SWARM_SIZE, num_cands))
+
+P_BEST_POS = X.copy()
+P_BEST_SCORES = np.zeros(SWARM_SIZE)
+G_BEST_POS = np.zeros(num_cands)
+G_BEST_SCORE = -1.0
+G_BEST_INDICES = []
+
+def evaluate_particle(priority_vector):
+    top_k_indices = np.argpartition(priority_vector, -NUM_CAMERAS_TO_SELECT)[-NUM_CAMERAS_TO_SELECT:]
+    selected_matrix = coverage_matrix[:, top_k_indices]
+    coverage_counts = np.array(selected_matrix.sum(axis=1)).flatten()
+    covered_mask = coverage_counts > 0
+    total_coverage = demand_weights[covered_mask].sum()
+    return total_coverage, top_k_indices, coverage_counts
+
+# Initial Eval
+print("Evaluating initial swarm...")
+for i in range(SWARM_SIZE):
+    score, indices, _ = evaluate_particle(X[i])
+    P_BEST_SCORES[i] = score
+    if score > G_BEST_SCORE:
+        G_BEST_SCORE = score
+        G_BEST_POS = X[i].copy()
+        G_BEST_INDICES = indices
+
+print(f"Initial Global Best Z: {G_BEST_SCORE:,.4f}")
+
+# ==============================
+# 6. RUIN & RECREATE LOGIC
+# ==============================
+
+def ruin_and_recreate(current_indices, counts):
+    """
+    1. RUIN: Drop cameras that provide the least UNIQUE coverage.
+    2. RECREATE: Greedily add cameras that cover the most UNCOVERED weight.
+    """
+    current_set = set(current_indices)
+    
+    # --- STEP 1: SMART RUIN ---
+    # Find cameras to remove (those with lowest unique contribution)
+    candidates_to_remove = []
+    
+    for cam_idx in current_indices:
+        pts = coverage_matrix[:, cam_idx].indices
+        # Unique contribution: Weight of points where count == 1 (only this camera)
+        unique_mask = (counts[pts] == 1)
+        unique_val = demand_weights[pts[unique_mask]].sum()
+        candidates_to_remove.append((cam_idx, unique_val))
+    
+    # Sort ascending (lowest contribution first)
+    candidates_to_remove.sort(key=lambda x: x[1])
+    
+    # Drop the bottom N (Ruin Percent)
+    num_to_drop = int(NUM_CAMERAS_TO_SELECT * RUIN_PERCENT)
+    dropped_cams = [x[0] for x in candidates_to_remove[:num_to_drop]]
+    
+    for cam in dropped_cams:
+        current_set.remove(cam)
+        
+    # Recalculate coverage mask after removal
+    temp_indices = list(current_set)
+    sel_mat = coverage_matrix[:, temp_indices]
+    temp_counts = np.array(sel_mat.sum(axis=1)).flatten()
+    current_uncovered_mask = (temp_counts == 0)
+    current_uncovered_weight = demand_weights.copy()
+    current_uncovered_weight[~current_uncovered_mask] = 0 # Zero out already covered
+    
+    # --- STEP 2: GREEDY RECREATE ---
+    # We need to pick 'num_to_drop' new cameras
+    added_cams = []
+    
+    # To speed this up, we only check a subset of candidates or use matrix math
+    # Here we do a fast matrix multiplication to find best gains
+    # Gain = coverage_matrix.T @ current_uncovered_weight
+    
+    for _ in range(num_to_drop):
+        # Calculate gains for ALL candidates against CURRENT uncovered weight
+        # This is the "Greedy" step
+        gains = coverage_matrix.T @ current_uncovered_weight
+        
+        # We must ignore candidates already in the set
+        # Set their gain to -1
+        gains[temp_indices] = -1
+        gains[added_cams] = -1
+        
+        # Pick best
+        best_cam = np.argmax(gains)
+        
+        if gains[best_cam] <= 0:
+            break # No more gains possible
+            
+        added_cams.append(best_cam)
+        
+        # Update weights (remove covered points)
+        new_covered_pts = coverage_matrix[:, best_cam].indices
+        current_uncovered_weight[new_covered_pts] = 0
+        
+    return dropped_cams, added_cams
+
+# ==============================
+# 7. OPTIMIZATION LOOP
+# ==============================
+print(f"\n--- Starting Loop ({MAX_ITERATIONS} Iterations) ---")
+
+history_iterations = [0]
+history_obj_values = [G_BEST_SCORE]
+
+for iteration in range(1, MAX_ITERATIONS + 1):
+    
+    for i in range(SWARM_SIZE):
+        # Standard PSO Movement
+        r1 = np.random.rand(num_cands)
+        r2 = np.random.rand(num_cands)
+        V[i] = W * V[i] + C1 * r1 * (P_BEST_POS[i] - X[i]) + C2 * r2 * (G_BEST_POS - X[i])
+        X[i] = X[i] + V[i]
+        
+        # --- RUIN & RECREATE MUTATION ---
+        # If we hit probability, we IGNORE velocity and do a smart repair
+        if random.random() < MUTATION_PROB:
+            # 1. Evaluate current pos to get counts
+            _, curr_indices, counts = evaluate_particle(X[i])
+            
+            # 2. Run heuristic
+            dropped, added = ruin_and_recreate(curr_indices, counts)
+            
+            # 3. Apply to Priority Vector
+            if len(dropped) > 0:
+                X[i, dropped] = 0.0  # Force out
+                X[i, added] = 1.0    # Force in
+        
+        # Clamp
+        X[i] = np.clip(X[i], 0.0, 1.0)
+        
+        # Eval
+        score, indices, _ = evaluate_particle(X[i])
+        
+        if score > P_BEST_SCORES[i]:
+            P_BEST_SCORES[i] = score
+            P_BEST_POS[i] = X[i].copy()
+            
+        if score > G_BEST_SCORE:
+            diff = score - G_BEST_SCORE
+            if diff > 0.0001:
+                print(f"  > IMPROVEMENT at Iter {iteration} (P{i}): +{diff:.4f} | Z: {score:,.4f}")
+                G_BEST_SCORE = score
+                G_BEST_POS = X[i].copy()
+                G_BEST_INDICES = indices
+
+    history_iterations.append(iteration)
+    history_obj_values.append(G_BEST_SCORE)
+    
+    if iteration % 5 == 0:
+        print(f"  Iter {iteration}/{MAX_ITERATIONS} | Best Z: {G_BEST_SCORE:,.4f}")
+
+# ==============================
+# 8. EXCEL SAVE (SAME AS BEFORE)
+# ==============================
+final_pct = (G_BEST_SCORE / TOTAL_DEMAND_WEIGHT) * 100
+end_time = time.time()
+run_time = end_time - start_time
+
+print("-" * 40)
+print(f"FINAL Z (PSO):      {G_BEST_SCORE:,.4f} ({final_pct:.2f}%)")
+print(f"TOTAL RUN TIME:     {run_time:.2f} seconds")
+print("-" * 40)
+
+final_indices = G_BEST_INDICES
+selected_matrix_final = coverage_matrix[:, final_indices]
+final_coverage_counts = np.array(selected_matrix_final.sum(axis=1)).flatten()
+
+df_results_cam = df_candidates.iloc[final_indices].copy()
+df_results_cam = df_results_cam[['candidate_id', 'loc_id', 'x', 'y', 'dir_angle']]
+df_results_cam.rename(columns={'dir_angle': 'direction_degrees'}, inplace=True)
+
+df_results_dem = df_demand.copy()
+df_results_dem['cameras_covering'] = final_coverage_counts 
+df_results_dem['is_covered'] = np.where(df_results_dem['cameras_covering'] > 0, 'Yes', 'No')
+
+with pd.ExcelWriter(OUTPUT_EXCEL_FILE) as writer:
+    df_results_cam.to_excel(writer, sheet_name='Selected_Cameras', index=False)
+    df_results_dem.to_excel(writer, sheet_name='Demand_Coverage', index=False)
+print(f"Excel saved: {OUTPUT_EXCEL_FILE}")
+
+# ==============================
+# 9. HEATMAP (SAME AS BEFORE)
+# ==============================
+final_heatmap_grid = np.zeros((TARGET_ROWS, TARGET_COLS))
+dem_x_flat = df_demand['x'].values
+dem_y_flat = df_demand['y'].values
+
+for i, count in enumerate(final_coverage_counts):
+    if count > 0:
+        r, c = int(dem_y_flat[i]), int(dem_x_flat[i])
+        if 0 <= r < TARGET_ROWS and 0 <= c < TARGET_COLS:
+            final_heatmap_grid[r, c] = count
+
+aspect_ratio = TARGET_ROWS / TARGET_COLS
+base_width = 10 
+fig_height = base_width * aspect_ratio
+fig, ax = plt.subplots(figsize=(base_width, fig_height), dpi=120)
+
+ax.set_xlim(0, TARGET_COLS)
+ax.set_ylim(TARGET_ROWS, 0) 
+ax.xaxis.tick_top()
+ax.xaxis.set_label_position('top')
+ax.set_xticks(np.arange(0, TARGET_COLS + 1, 10))
+ax.set_yticks(np.arange(0, TARGET_ROWS + 1, 10))
+ax.set_xticks(np.arange(0.5, TARGET_COLS, 1), minor=True)
+ax.set_yticks(np.arange(0.5, TARGET_ROWS, 1), minor=True)
+ax.grid(which='minor', color='gray', linestyle='-', linewidth=0.5)
+ax.tick_params(which='minor', bottom=False, left=False)
+
+colors = ['#ffffff00', '#800080', '#00ced1', '#ffd700'] 
+cmap = ListedColormap(colors)
+bounds = [0, 1, 2, 3, 100]
+norm = BoundaryNorm(bounds, cmap.N)
+ax.imshow(final_heatmap_grid, extent=[0, TARGET_COLS, TARGET_ROWS, 0], cmap=cmap, norm=norm, interpolation='nearest', zorder=1)
+
+legend_elements = [Line2D([0], [0], marker='s', color='w', markerfacecolor='#800080', markersize=10, label='1 Cam'),
+                   Line2D([0], [0], marker='s', color='w', markerfacecolor='#00ced1', markersize=10, label='2 Cams'),
+                   Line2D([0], [0], marker='s', color='w', markerfacecolor='#ffd700', markersize=10, label='3+ Cams')]
+ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0.)
+
+title_text = f"{HEATMAP_TITLE}\nCoverage: {final_pct:.2f}% | Run Time: {run_time:.1f}s"
+ax.set_title(title_text, fontsize=14, fontweight='bold', pad=20)
+plt.tight_layout()
+plt.savefig(OUTPUT_IMAGE_FILE, bbox_inches='tight')
+plt.close()
+print(f"Heatmap saved: {OUTPUT_IMAGE_FILE}")
+
+# ==============================
+# 10. PLOT (SAME AS BEFORE)
+# ==============================
+plt.figure(figsize=(10, 6), dpi=100)
+plt.plot(history_iterations, history_obj_values, marker='o', linestyle='-', color='#e74c3c', markersize=4, label='Global Best (Z)')
+
+if history_obj_values:
+    plt.annotate(f"Start: {history_obj_values[0]:,.0f}", (history_iterations[0], history_obj_values[0]), 
+                 textcoords="offset points", xytext=(10, -10), ha='left', fontsize=9)
+    plt.annotate(f"End: {history_obj_values[-1]:,.0f}", (history_iterations[-1], history_obj_values[-1]), 
+                 textcoords="offset points", xytext=(-10, 10), ha='right', fontsize=9)
+
+plot_title = f"PSO Convergence (100 Cams)\nFinal Coverage: {final_pct:.2f}% | Time: {run_time:.1f}s"
 plt.title(plot_title, fontsize=14, fontweight='bold')
 plt.xlabel("Iteration Number")
 plt.ylabel("Total Weighted Coverage (Z)")

@@ -6,7 +6,7 @@ from matplotlib.colors import LinearSegmentedColormap, PowerNorm
 # ==============================
 # SETTINGS
 # ==============================
-EXCEL_FILE = "new.xlsx"
+EXCEL_FILE = "Final_Dataset_MCLP.xlsx"
 DEMAND_SHEET = "demand"
 OUTPUT_IMAGE_FILE = "grid_heatmap.png"
 HEATMAP_TITLE = "Campus Demand Distribution Heatmap (Grid View)"

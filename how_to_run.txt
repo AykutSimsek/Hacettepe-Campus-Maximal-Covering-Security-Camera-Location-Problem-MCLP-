@@ -15,6 +15,7 @@ Required Python libraries:
 - matplotlib
 - scipy
 - pillow (PIL)
+- openpyxl
 
 Install required libraries using:
 pip install numpy pandas matplotlib scipy pillow openpyxl
@@ -27,7 +28,7 @@ Ensure that all files are located in the same directory as main.py.
 your_project_folder/
 |
 ├── main.py
-├── new.xlsx
+├── Final_Dataset_MCLP.xlsx
 ├── kroki.jpg
 ├── how_to_run.txt
 |
@@ -38,35 +39,48 @@ your_project_folder/
     ├── grid_locations_with_strips.png
     ├── campus_heatmap.png
     ├── grid_heatmap.png
-    ├── Coverage_Matrix.csv
     |
     ├── [GREEDY OPTIMIZATION OUTPUTS - 3 RUNS]
     ├── greedy_solution_final_soln1.xlsx
     ├── greedy_heatmap_soln1.png
+    ├── greedy_growth_curve_soln1.png    <-- (New: Growth Curve)
     ├── greedy_heatmap_gridview_soln1.png
     ├── greedy_solution_final_soln2.xlsx
     ├── greedy_heatmap_soln2.png
+    ├── greedy_growth_curve_soln2.png    <-- (New: Growth Curve)
     ├── greedy_heatmap_gridview_soln2.png
     ├── greedy_solution_final_soln3.xlsx
     ├── greedy_heatmap_soln3.png
+    ├── greedy_growth_curve_soln3.png    <-- (New: Growth Curve)
     ├── greedy_heatmap_gridview_soln3.png
     |
-    └── [LOCAL SEARCH IMPROVEMENT OUTPUTS]
+    ├── [LOCAL SEARCH IMPROVEMENT OUTPUTS]
     ├── local_search_soln1.xlsx
     ├── local_search_heatmap_soln1.png
-    ├── local_search_plot_soln1.png
+    ├── local_search_plot_soln1.png      <-- (New: Optimization Trajectory)
     ├── local_search_soln2.xlsx
     ├── local_search_heatmap_soln2.png
     ├── local_search_plot_soln2.png
     ├── local_search_soln3.xlsx
     ├── local_search_heatmap_soln3.png
-    └── local_search_plot_soln3.png
+    ├── local_search_plot_soln3.png
+    |
+    └── [PSO REFINEMENT OUTPUTS]
+    ├── pso_solution_soln1.xlsx
+    ├── pso_heatmap_soln1.png
+    ├── pso_trajectory_plot_soln1.png    <-- (New: Convergence Plot)
+    ├── pso_solution_soln2.xlsx
+    ├── pso_heatmap_soln2.png
+    ├── pso_trajectory_plot_soln2.png
+    ├── pso_solution_soln3.xlsx
+    ├── pso_heatmap_soln3.png
+    └── pso_trajectory_plot_soln3.png
 
 
 3. INPUT DATA FILES
 ------------------
 
-3.1 new.xlsx
+3.1 Final_Dataset_MCLP.xlsx
 Main input Excel file with two sheets:
 
 Sheet: demand
@@ -88,7 +102,8 @@ Open a terminal in the project directory and run:
 
 python main.py
 
-The script runs all steps sequentially. Execution may take several minutes depending on the hardware, specifically during the Local Search phases.
+The script runs all steps sequentially.
+Execution may take several minutes depending on the hardware, as it now performs three distinct phases of optimization (Greedy -> Local Search -> PSO) for three separate solutions.
 
 
 5. EXECUTION FLOW AND OUTPUTS
@@ -119,36 +134,52 @@ Outputs:
 - grid_heatmap.png
 
 STEP 7 – Coverage Matrix Construction
-Computes coverage between camera-orientation pairs and demand points for reference.
-Output: Coverage_Matrix.csv
+(Internal step) Computes coverage between camera-orientation pairs and demand points for use in optimization.
 
 --- PHASE 1: RANDOMIZED GREEDY OPTIMIZATION ---
 
 STEP 8 – Randomized Greedy (3 Independent Runs)
 Runs the Greedy algorithm 3 separate times using RCL (Restricted Candidate List) to generate distinct initial solutions.
+It generates a full solution but highlights the performance at **100 cameras**.
 Outputs (for Soln 1, 2, and 3):
-- greedy_solution_final_soln{X}.xlsx (Selected cameras list)
-- greedy_heatmap_soln{X}.png (Visual coverage on map)
+- greedy_solution_final_soln{X}.xlsx
+- greedy_heatmap_soln{X}.png
+- greedy_growth_curve_soln{X}.png (Visualizes coverage growth vs number of cameras)
 
 STEP 9 – Grid View Visualization for Greedy Solutions
-Reloads the 3 generated solutions and creates precise grid-based heatmaps for verification.
+Reloads the top 100 cameras from the 3 generated solutions and creates precise grid-based heatmaps.
 Outputs:
-- greedy_heatmap_gridview_soln1.png
-- greedy_heatmap_gridview_soln2.png
-- greedy_heatmap_gridview_soln3.png
+- greedy_heatmap_gridview_soln{X}.png
 
 --- PHASE 2: LOCAL SEARCH (IMPROVEMENT) ---
 
-STEP 10 – Local Search Optimization (1-Swap)
-Takes the 3 greedy solutions generated in Step 8 and attempts to improve them by swapping selected cameras with unselected ones to increase total coverage weight.
+STEP 10 – Local Search Optimization (1-Swap on Top 100)
+Takes the **top 100 cameras** from the 3 greedy solutions in Step 8.
+Performs a **1-Swap Local Search**: Iteratively replaces a selected camera with an unselected one if it improves total coverage.
 Outputs (for Soln 1, 2, and 3):
-- local_search_soln{X}.xlsx (Final optimized camera list)
-- local_search_heatmap_soln{X}.png (Final optimized heatmap)
+- local_search_soln{X}.xlsx
+- local_search_heatmap_soln{X}.png
 - local_search_plot_soln{X}.png (Trajectory plot showing improvement over iterations)
+
+--- PHASE 3: PARTICLE SWARM OPTIMIZATION (REFINEMENT) ---
+
+STEP 11 – PSO with Ruin & Recreate
+Takes the 3 Local Search solutions from Step 10 and uses them to "seed" the Particle Swarm.
+Uses a **Ruin & Recreate** strategy:
+- Particle 0 is initialized with the exact Local Search solution.
+- Other particles are initialized with variations.
+- During execution, the algorithm randomly "ruins" (removes) a percentage of cameras and "recreates" (adds) new ones to escape local optima.
+Outputs (for Soln 1, 2, and 3):
+- pso_solution_soln{X}.xlsx (Final optimized list of 100 cameras)
+- pso_heatmap_soln{X}.png (Final visualization)
+- pso_trajectory_plot_soln{X}.png (Convergence plot showing global best score)
 
 
 6. NOTES
 --------
-- The "Greedy Optimization" step uses a randomized approach (RCL), so results (Soln 1, 2, 3) will differ from each other, providing a pool of diverse starting points for the Local Search.
-- "Local Search" is computationally intensive as it checks every possible swap for improvement.
-- Do not rename intermediate files (e.g., greedy_solution_final_soln1.xlsx) while the script is running, as subsequent steps depend on them.
+- **Pipeline Strategy**: The code uses a "Warm Start" strategy with a fixed budget of **100 cameras**.
+  1. **Greedy**: Rapidly identifies good candidate regions.
+  2. **Local Search**: Refines the specific selection of 100 cameras by swapping.
+  3. **PSO**: Uses swarm intelligence and mutation (Ruin & Recreate) to squeeze out final percentage gains.
+- **Run Time**: The "Local Search" and "PSO" phases are computationally intensive.
+- **File Dependency**: Do not rename intermediate files (e.g., local_search_soln1.xlsx) while the script is running, as Phase 3 depends on the output of Phase 2.

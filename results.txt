@@ -1,136 +1,628 @@
 --- PROCESS STARTED: GENERATING greedy_solution_final_soln1.xlsx ---
-Demand Points: 10400 | Total Weight: 47,845
+Demand Points: 10400 | Total Weight: 5,427
 Camera Locations: 10530
 Computing Coverage Matrix...
-Optimizing for 100 cameras using RCL=5...
+Optimizing until 100% coverage...
+Cam 1     | Coverage: 0.42%
+Cam 10    | Coverage: 4.24%
+Cam 20    | Coverage: 8.48%
+Cam 30    | Coverage: 12.71%
+Cam 40    | Coverage: 16.91%
+Cam 50    | Coverage: 21.02%
+Cam 60    | Coverage: 24.96%
+Cam 70    | Coverage: 28.74%
+Cam 80    | Coverage: 32.35%
+Cam 90    | Coverage: 35.89%
+Cam 100   | Coverage: 39.24%
+Cam 110   | Coverage: 42.37%
+Cam 120   | Coverage: 45.28%
+Cam 130   | Coverage: 48.02%
+Cam 140   | Coverage: 50.65%
+Cam 150   | Coverage: 53.21%
+Cam 160   | Coverage: 55.69%
+Cam 170   | Coverage: 58.07%
+Cam 180   | Coverage: 60.34%
+Cam 190   | Coverage: 62.55%
+Cam 200   | Coverage: 64.65%
+Cam 210   | Coverage: 66.65%
+Cam 220   | Coverage: 68.55%
+Cam 230   | Coverage: 70.38%
+Cam 240   | Coverage: 72.15%
+Cam 250   | Coverage: 73.85%
+Cam 260   | Coverage: 75.55%
+Cam 270   | Coverage: 77.19%
+Cam 280   | Coverage: 78.79%
+Cam 290   | Coverage: 80.31%
+Cam 300   | Coverage: 81.77%
+Cam 310   | Coverage: 83.13%
+Cam 320   | Coverage: 84.46%
+Cam 330   | Coverage: 85.70%
+Cam 340   | Coverage: 86.83%
+Cam 350   | Coverage: 87.91%
+Cam 360   | Coverage: 88.89%
+Cam 370   | Coverage: 89.77%
+Cam 380   | Coverage: 90.58%
+Cam 390   | Coverage: 91.32%
+Cam 400   | Coverage: 92.03%
+Cam 410   | Coverage: 92.67%
+Cam 420   | Coverage: 93.27%
+Cam 430   | Coverage: 93.84%
+Cam 440   | Coverage: 94.38%
+Cam 450   | Coverage: 94.87%
+Cam 460   | Coverage: 95.33%
+Cam 470   | Coverage: 95.74%
+Cam 480   | Coverage: 96.13%
+Cam 490   | Coverage: 96.48%
+Cam 500   | Coverage: 96.82%
+Cam 510   | Coverage: 97.12%
+Cam 520   | Coverage: 97.40%
+Cam 530   | Coverage: 97.69%
+Cam 540   | Coverage: 97.96%
+Cam 550   | Coverage: 98.22%
+Cam 560   | Coverage: 98.46%
+Cam 570   | Coverage: 98.69%
+Cam 580   | Coverage: 98.89%
+Cam 590   | Coverage: 99.06%
+Cam 600   | Coverage: 99.21%
+Cam 610   | Coverage: 99.35%
+Cam 620   | Coverage: 99.47%
+Cam 630   | Coverage: 99.58%
+Cam 640   | Coverage: 99.66%
+Cam 650   | Coverage: 99.74%
+Cam 660   | Coverage: 99.81%
+Cam 670   | Coverage: 99.88%
+Cam 680   | Coverage: 99.92%
+Cam 690   | Coverage: 99.95%
+Cam 700   | Coverage: 99.97%
+Cam 710   | Coverage: 99.99%
+Cam 720   | Coverage: 100.00%
+  -> Optimization stopped at Camera 720: 100% Coverage reached!
 
 ==================================================
- SCENARIO ANALYSIS: COVERAGE FOR greedy_solution_final_soln1.xlsx
+ FINAL REPORT
 ==================================================
-Cameras    | Coverage %      | Gain
+Total Cameras Needed for 100.00%: 720
+Status at 100 Cameras:     39.24% coverage
 --------------------------------------------------
-10         | 3.75  %         | +179
-50         | 18.70 %         | +175
-100        | 35.35 %         | +140
---------------------------------------------------
-FINAL: 100 cams | 35.35% | 64.97s
+Time Elapsed: 117.17s
 ==================================================
 
 Saving to greedy_solution_final_soln1.xlsx...
 Excel file created successfully.
 Curve saved: greedy_growth_curve_soln1.png
-Heatmap saved: greedy_heatmap_soln1.png
-COVERAGE: 16,915 / 47,845 (35.35%)
+Heatmap (100 Cams) saved: greedy_heatmap_soln1.png
+
 --- PROCESS STARTED: GENERATING greedy_solution_final_soln2.xlsx ---
-Demand Points: 10400 | Total Weight: 47,845
+Demand Points: 10400 | Total Weight: 5,427
 Camera Locations: 10530
 Computing Coverage Matrix...
-Optimizing for 100 cameras using RCL=5...
+Optimizing until 100% coverage...
+Cam 1     | Coverage: 0.42%
+Cam 10    | Coverage: 4.24%
+Cam 20    | Coverage: 8.48%
+Cam 30    | Coverage: 12.71%
+Cam 40    | Coverage: 16.91%
+Cam 50    | Coverage: 21.03%
+Cam 60    | Coverage: 24.94%
+Cam 70    | Coverage: 28.75%
+Cam 80    | Coverage: 32.40%
+Cam 90    | Coverage: 35.87%
+Cam 100   | Coverage: 39.17%
+Cam 110   | Coverage: 42.27%
+Cam 120   | Coverage: 45.21%
+Cam 130   | Coverage: 47.98%
+Cam 140   | Coverage: 50.66%
+Cam 150   | Coverage: 53.19%
+Cam 160   | Coverage: 55.67%
+Cam 170   | Coverage: 58.05%
+Cam 180   | Coverage: 60.31%
+Cam 190   | Coverage: 62.46%
+Cam 200   | Coverage: 64.54%
+Cam 210   | Coverage: 66.53%
+Cam 220   | Coverage: 68.42%
+Cam 230   | Coverage: 70.30%
+Cam 240   | Coverage: 72.07%
+Cam 250   | Coverage: 73.79%
+Cam 260   | Coverage: 75.49%
+Cam 270   | Coverage: 77.11%
+Cam 280   | Coverage: 78.68%
+Cam 290   | Coverage: 80.20%
+Cam 300   | Coverage: 81.61%
+Cam 310   | Coverage: 82.94%
+Cam 320   | Coverage: 84.24%
+Cam 330   | Coverage: 85.43%
+Cam 340   | Coverage: 86.56%
+Cam 350   | Coverage: 87.64%
+Cam 360   | Coverage: 88.71%
+Cam 370   | Coverage: 89.68%
+Cam 380   | Coverage: 90.55%
+Cam 390   | Coverage: 91.38%
+Cam 400   | Coverage: 92.12%
+Cam 410   | Coverage: 92.82%
+Cam 420   | Coverage: 93.46%
+Cam 430   | Coverage: 94.04%
+Cam 440   | Coverage: 94.57%
+Cam 450   | Coverage: 95.06%
+Cam 460   | Coverage: 95.49%
+Cam 470   | Coverage: 95.91%
+Cam 480   | Coverage: 96.31%
+Cam 490   | Coverage: 96.66%
+Cam 500   | Coverage: 96.98%
+Cam 510   | Coverage: 97.27%
+Cam 520   | Coverage: 97.55%
+Cam 530   | Coverage: 97.83%
+Cam 540   | Coverage: 98.10%
+Cam 550   | Coverage: 98.33%
+Cam 560   | Coverage: 98.56%
+Cam 570   | Coverage: 98.77%
+Cam 580   | Coverage: 98.94%
+Cam 590   | Coverage: 99.10%
+Cam 600   | Coverage: 99.24%
+Cam 610   | Coverage: 99.36%
+Cam 620   | Coverage: 99.47%
+Cam 630   | Coverage: 99.57%
+Cam 640   | Coverage: 99.66%
+Cam 650   | Coverage: 99.73%
+Cam 660   | Coverage: 99.80%
+Cam 670   | Coverage: 99.87%
+Cam 680   | Coverage: 99.91%
+Cam 690   | Coverage: 99.95%
+Cam 700   | Coverage: 99.97%
+Cam 710   | Coverage: 99.99%
+Cam 720   | Coverage: 100.00%
+  -> Optimization stopped at Camera 720: 100% Coverage reached!
 
 ==================================================
- SCENARIO ANALYSIS: COVERAGE FOR greedy_solution_final_soln2.xlsx
+ FINAL REPORT
 ==================================================
-Cameras    | Coverage %      | Gain
+Total Cameras Needed for 100.00%: 720
+Status at 100 Cameras:     39.17% coverage
 --------------------------------------------------
-10         | 3.75  %         | +179
-50         | 18.69 %         | +175
-100        | 35.36 %         | +141
---------------------------------------------------
-FINAL: 100 cams | 35.36% | 73.90s
+Time Elapsed: 76.28s
 ==================================================
 
 Saving to greedy_solution_final_soln2.xlsx...
 Excel file created successfully.
 Curve saved: greedy_growth_curve_soln2.png
-Heatmap saved: greedy_heatmap_soln2.png
-COVERAGE: 16,920 / 47,845 (35.36%)
+Heatmap (100 Cams) saved: greedy_heatmap_soln2.png
+
 --- PROCESS STARTED: GENERATING greedy_solution_final_soln3.xlsx ---
-Demand Points: 10400 | Total Weight: 47,845
+Demand Points: 10400 | Total Weight: 5,427
 Camera Locations: 10530
 Computing Coverage Matrix...
-Optimizing for 100 cameras using RCL=5...
+Optimizing until 100% coverage...
+Cam 1     | Coverage: 0.42%
+Cam 10    | Coverage: 4.24%
+Cam 20    | Coverage: 8.48%
+Cam 30    | Coverage: 12.71%
+Cam 40    | Coverage: 16.92%
+Cam 50    | Coverage: 20.97%
+Cam 60    | Coverage: 24.90%
+Cam 70    | Coverage: 28.67%
+Cam 80    | Coverage: 32.29%
+Cam 90    | Coverage: 35.81%
+Cam 100   | Coverage: 39.05%
+Cam 110   | Coverage: 42.13%
+Cam 120   | Coverage: 45.05%
+Cam 130   | Coverage: 47.80%
+Cam 140   | Coverage: 50.48%
+Cam 150   | Coverage: 53.03%
+Cam 160   | Coverage: 55.50%
+Cam 170   | Coverage: 57.93%
+Cam 180   | Coverage: 60.26%
+Cam 190   | Coverage: 62.41%
+Cam 200   | Coverage: 64.47%
+Cam 210   | Coverage: 66.45%
+Cam 220   | Coverage: 68.35%
+Cam 230   | Coverage: 70.17%
+Cam 240   | Coverage: 71.93%
+Cam 250   | Coverage: 73.64%
+Cam 260   | Coverage: 75.30%
+Cam 270   | Coverage: 76.94%
+Cam 280   | Coverage: 78.52%
+Cam 290   | Coverage: 80.02%
+Cam 300   | Coverage: 81.50%
+Cam 310   | Coverage: 82.84%
+Cam 320   | Coverage: 84.11%
+Cam 330   | Coverage: 85.33%
+Cam 340   | Coverage: 86.50%
+Cam 350   | Coverage: 87.59%
+Cam 360   | Coverage: 88.60%
+Cam 370   | Coverage: 89.54%
+Cam 380   | Coverage: 90.37%
+Cam 390   | Coverage: 91.15%
+Cam 400   | Coverage: 91.90%
+Cam 410   | Coverage: 92.60%
+Cam 420   | Coverage: 93.25%
+Cam 430   | Coverage: 93.85%
+Cam 440   | Coverage: 94.41%
+Cam 450   | Coverage: 94.94%
+Cam 460   | Coverage: 95.43%
+Cam 470   | Coverage: 95.87%
+Cam 480   | Coverage: 96.25%
+Cam 490   | Coverage: 96.61%
+Cam 500   | Coverage: 96.92%
+Cam 510   | Coverage: 97.21%
+Cam 520   | Coverage: 97.50%
+Cam 530   | Coverage: 97.78%
+Cam 540   | Coverage: 98.05%
+Cam 550   | Coverage: 98.28%
+Cam 560   | Coverage: 98.50%
+Cam 570   | Coverage: 98.71%
+Cam 580   | Coverage: 98.90%
+Cam 590   | Coverage: 99.08%
+Cam 600   | Coverage: 99.23%
+Cam 610   | Coverage: 99.37%
+Cam 620   | Coverage: 99.48%
+Cam 630   | Coverage: 99.59%
+Cam 640   | Coverage: 99.67%
+Cam 650   | Coverage: 99.74%
+Cam 660   | Coverage: 99.81%
+Cam 670   | Coverage: 99.87%
+Cam 680   | Coverage: 99.91%
+Cam 690   | Coverage: 99.94%
+Cam 700   | Coverage: 99.97%
+Cam 710   | Coverage: 99.99%
+Cam 720   | Coverage: 100.00%
+  -> Optimization stopped at Camera 722: 100% Coverage reached!
 
 ==================================================
- SCENARIO ANALYSIS: COVERAGE FOR greedy_solution_final_soln3.xlsx
+ FINAL REPORT
 ==================================================
-Cameras    | Coverage %      | Gain
+Total Cameras Needed for 100.00%: 722
+Status at 100 Cameras:     39.05% coverage
 --------------------------------------------------
-10         | 3.75  %         | +179
-50         | 18.70 %         | +175
-100        | 35.43 %         | +144
---------------------------------------------------
+Time Elapsed: 65.22s
 ==================================================
 
+Saving to greedy_solution_final_soln3.xlsx...
 Excel file created successfully.
 Curve saved: greedy_growth_curve_soln3.png
-Heatmap saved: greedy_heatmap_soln3.png
-COVERAGE: 16,950 / 47,845 (35.43%)
+Heatmap (100 Cams) saved: greedy_heatmap_soln3.png
 
+--- PROCESS STARTED: LOADING greedy_solution_final_soln1.xlsx ---
+Demand Points: 10400 | Total Weight: 5,427
+Recomputing Coverage Matrix to verify solution...
+Loading selected cameras from: greedy_solution_final_soln1.xlsx
+  > Original file has 100 cameras.
+  > Selected top 100 cameras for visualization.
+----------------------------------------
+LOADED SOLUTION METRICS (TOP 100)
+CAMERAS:  100
+COVERAGE: 2,130 / 5,427 (39.24%)
+----------------------------------------
+Heatmap saved: greedy_heatmap_gridview_soln1.png
 
+--- PROCESS STARTED: LOADING greedy_solution_final_soln2.xlsx ---
+Demand Points: 10400 | Total Weight: 5,427
+Recomputing Coverage Matrix to verify solution...
+Loading selected cameras from: greedy_solution_final_soln2.xlsx
+  > Original file has 720 cameras.
+  > Selected top 100 cameras for visualization.
+----------------------------------------
+LOADED SOLUTION METRICS (TOP 100)
+CAMERAS:  100
+COVERAGE: 2,126 / 5,427 (39.17%)
+----------------------------------------
+Heatmap saved: greedy_heatmap_gridview_soln2.png
+
+--- PROCESS STARTED: LOADING greedy_solution_final_soln3.xlsx ---
+Demand Points: 10400 | Total Weight: 5,427
+Recomputing Coverage Matrix to verify solution...
+Loading selected cameras from: greedy_solution_final_soln3.xlsx
+  > Original file has 722 cameras.
+  > Selected top 100 cameras for visualization.
+----------------------------------------
+LOADED SOLUTION METRICS (TOP 100)
+CAMERAS:  100
+COVERAGE: 2,119 / 5,427 (39.05%)
+----------------------------------------
+Heatmap saved: greedy_heatmap_gridview_soln3.png
+
+--- PROCESS STARTED ---
+Demand Points: 10400 | Total Weight: 5,426.8680
+Total Candidates Generated: 42120
+Computing Coverage Matrix...
 --- Loading Initial Solution from greedy_solution_final_soln1.xlsx ---
-Loaded 100 cameras from file.
+Original solution size: 100
+Filtered solution size: 100 (Top 100)
 Reconstructing coverage state...
-Initial Z: 16,914.7000 (35.35%)
+Initial Z: 2,129.7350 (39.24%)
 
 --- Starting 1-Swap Local Search ---
+  It 1: Out 16974 / In 24132 | Gain +0.0150 | Z: 2,129.7500
+  It 2: Out 29482 / In 17921 | Gain +0.1940 | Z: 2,129.9440
+  It 3: Out 24132 / In 29478 | Gain +0.0070 | Z: 2,129.9510
+  It 4: Out 24425 / In 24128 | Gain +0.7030 | Z: 2,130.6540
+  It 5: Out 29176 / In 23962 | Gain +0.4880 | Z: 2,131.1420
+  It 6: Out 32917 / In 32841 | Gain +0.2110 | Z: 2,131.3530
+  It 7: Out 24128 / In 32913 | Gain +0.1460 | Z: 2,131.4990
+  It 8: Out 32841 / In 24132 | Gain +0.7990 | Z: 2,132.2980
+  It 9: Out 979 / In 29180 | Gain +0.3920 | Z: 2,132.6900
+  It 10: Out 29180 / In 1932 | Gain +0.0920 | Z: 2,132.7820
   No further improvements found. Local Optimum reached.
 ----------------------------------------
-INITIAL Z:      16,914.7000 (35.35%)
-FINAL Z:        16,914.7000 (35.35%)
-IMPROVEMENT:    +0.0000
-TOTAL RUN TIME: 518.01 seconds
+INITIAL Z:      2,129.7350 (39.24%)
+FINAL Z:        2,132.7820 (39.30%)
+IMPROVEMENT:    +3.0470
+TOTAL RUN TIME: 2218.58 seconds
 ----------------------------------------
 Excel saved: local_search_soln1.xlsx
 Heatmap saved: local_search_heatmap_soln1.png
 Trajectory plot saved: local_search_plot_soln1.png
 
+
 --- PROCESS STARTED ---
-Demand Points: 10400 | Total Weight: 47,844.6000
+Demand Points: 10400 | Total Weight: 5,426.8680
 Total Candidates Generated: 42120
 Computing Coverage Matrix...
 --- Loading Initial Solution from greedy_solution_final_soln2.xlsx ---
-Loaded 100 cameras from file.
+Original solution size: 720
+Filtered solution size: 100 (Top 100)
 Reconstructing coverage state...
-Initial Z: 16,920.0000 (35.36%)
+Initial Z: 2,125.6320 (39.17%)
 
 --- Starting 1-Swap Local Search ---
-  It 1: Out 14137 / In 33215 | Gain +0.4000 | Z: 16,920.4000
-  It 2: Out 36459 / In 14137 | Gain +0.6000 | Z: 16,921.0000
-  It 3: Out 24447 / In 25019 | Gain +2.0000 | Z: 16,923.0000
+  It 1: Out 32841 / In 20731 | Gain +0.1760 | Z: 2,125.8080
+  It 2: Out 32593 / In 32521 | Gain +0.1300 | Z: 2,125.9380
+  It 3: Out 32521 / In 33233 | Gain +0.4880 | Z: 2,126.4260
+  It 4: Out 23962 / In 30711 | Gain +0.0100 | Z: 2,126.4360
+  It 5: Out 330 / In 24291 | Gain +0.0990 | Z: 2,126.5350
+  It 6: Out 11088 / In 1299 | Gain +0.0820 | Z: 2,126.6170
+  It 7: Out 1299 / In 10121 | Gain +0.0940 | Z: 2,126.7110
+  It 8: Out 11351 / In 1299 | Gain +0.4030 | Z: 2,127.1140
+  It 9: Out 1299 / In 11325 | Gain +0.5970 | Z: 2,127.7110
+  It 10: Out 29052 / In 1299 | Gain +0.6540 | Z: 2,128.3650
+  It 11: Out 1299 / In 28077 | Gain +0.0490 | Z: 2,128.4140
+  It 12: Out 37000 / In 1299 | Gain +0.5620 | Z: 2,128.9760
+  It 13: Out 1299 / In 35086 | Gain +0.3070 | Z: 2,129.2830
+  It 14: Out 37259 / In 1299 | Gain +0.5840 | Z: 2,129.8670
+  It 15: Out 35086 / In 37884 | Gain +0.3600 | Z: 2,130.2270
+  It 16: Out 1299 / In 35717 | Gain +0.0940 | Z: 2,130.3210
+  It 17: Out 25019 / In 1932 | Gain +0.0560 | Z: 2,130.3770
+  It 18: Out 1932 / In 24678 | Gain +0.0290 | Z: 2,130.4060
+  It 19: Out 24678 / In 1299 | Gain +0.5690 | Z: 2,130.9750
+  It 20: Out 37077 / In 32841 | Gain +0.7980 | Z: 2,131.7730
+  It 21: Out 32841 / In 36446 | Gain +0.2620 | Z: 2,132.0350
+  It 22: Out 34518 / In 29580 | Gain +0.4020 | Z: 2,132.4370
+  It 23: Out 36446 / In 34514 | Gain +0.2760 | Z: 2,132.7130
+  It 24: Out 29580 / In 37393 | Gain +0.5380 | Z: 2,133.2510
+  It 25: Out 30711 / In 24993 | Gain +0.1210 | Z: 2,133.3720
+  It 26: Out 24993 / In 15406 | Gain +0.2510 | Z: 2,133.6230
+  It 27: Out 15406 / In 24678 | Gain +0.2510 | Z: 2,133.8740
   No further improvements found. Local Optimum reached.
 ----------------------------------------
-INITIAL Z:      16,920.0000 (35.36%)
-FINAL Z:        16,923.0000 (35.37%)
-IMPROVEMENT:    +3.0000
-TOTAL RUN TIME: 851.82 seconds
+INITIAL Z:      2,125.6320 (39.17%)
+FINAL Z:        2,133.8740 (39.32%)
+IMPROVEMENT:    +8.2420
+TOTAL RUN TIME: 4301.43 seconds
 ----------------------------------------
 Excel saved: local_search_soln2.xlsx
 Heatmap saved: local_search_heatmap_soln2.png
 Trajectory plot saved: local_search_plot_soln2.png
+
+
 --- PROCESS STARTED ---
-Demand Points: 10400 | Total Weight: 47,844.6000
+Demand Points: 10400 | Total Weight: 5,426.8680
 Total Candidates Generated: 42120
 Computing Coverage Matrix...
 --- Loading Initial Solution from greedy_solution_final_soln3.xlsx ---
-Loaded 100 cameras from file.
+Original solution size: 722
+Filtered solution size: 100 (Top 100)
 Reconstructing coverage state...
-Initial Z: 16,949.7000 (35.43%)
+Initial Z: 2,119.3770 (39.05%)
 
 --- Starting 1-Swap Local Search ---
-  It 1: Out 25417 / In 32543 | Gain +6.0000 | Z: 16,955.7000
-  It 2: Out 17514 / In 25417 | Gain +1.4000 | Z: 16,957.1000
-  It 3: Out 29180 / In 19440 | Gain +0.4000 | Z: 16,957.5000
+  It 1: Out 13572 / In 1299 | Gain +0.6500 | Z: 2,120.0270
+  It 2: Out 26379 / In 13267 | Gain +0.2410 | Z: 2,120.2680
+  It 3: Out 13577 / In 24770 | Gain +0.3070 | Z: 2,120.5750
+  It 4: Out 19212 / In 13923 | Gain +0.1760 | Z: 2,120.7510
+  It 5: Out 36939 / In 18245 | Gain +0.2510 | Z: 2,121.0020
+  It 6: Out 19981 / In 37884 | Gain +0.3170 | Z: 2,121.3190
+  It 7: Out 13838 / In 19977 | Gain +1.0000 | Z: 2,122.3190
+  It 8: Out 1299 / In 13834 | Gain +1.3250 | Z: 2,123.6440
+  It 9: Out 22085 / In 1299 | Gain +0.1420 | Z: 2,123.7860
+  It 10: Out 1299 / In 22107 | Gain +0.0140 | Z: 2,123.8000
+  It 11: Out 18245 / In 1299 | Gain +0.9060 | Z: 2,124.7060
+  It 12: Out 29576 / In 19212 | Gain +0.6930 | Z: 2,125.3990
+  It 13: Out 16037 / In 18444 | Gain +0.0450 | Z: 2,125.4440
+  It 14: Out 18444 / In 15410 | Gain +0.1210 | Z: 2,125.5650
+  It 15: Out 25251 / In 29580 | Gain +0.0700 | Z: 2,125.6350
+  It 16: Out 19212 / In 24611 | Gain +0.1560 | Z: 2,125.7910
+  It 17: Out 29580 / In 19212 | Gain +0.0850 | Z: 2,125.8760
+  It 18: Out 36779 / In 29580 | Gain +0.2110 | Z: 2,126.0870
+  It 19: Out 19212 / In 36459 | Gain +0.1210 | Z: 2,126.2080
+  It 20: Out 29580 / In 18444 | Gain +0.0850 | Z: 2,126.2930
+  It 21: Out 13280 / In 18245 | Gain +0.0520 | Z: 2,126.3450
+  It 22: Out 18444 / In 13600 | Gain +0.2160 | Z: 2,126.5610
+  It 23: Out 18245 / In 18444 | Gain +0.2160 | Z: 2,126.7770
+  It 24: Out 29166 / In 29580 | Gain +0.2610 | Z: 2,127.0380
+  It 25: Out 18444 / In 29486 | Gain +0.5800 | Z: 2,127.6180
+  It 26: Out 29580 / In 19212 | Gain +0.0850 | Z: 2,127.7030
   No further improvements found. Local Optimum reached.
 ----------------------------------------
-INITIAL Z:      16,949.7000 (35.43%)
-FINAL Z:        16,957.5000 (35.44%)
-IMPROVEMENT:    +7.8000
-TOTAL RUN TIME: 1008.79 seconds
+INITIAL Z:      2,119.3770 (39.05%)
+FINAL Z:        2,127.7030 (39.21%)
+IMPROVEMENT:    +8.3260
+TOTAL RUN TIME: 9558.58 seconds
 ----------------------------------------
 Excel saved: local_search_soln3.xlsx
 Heatmap saved: local_search_heatmap_soln3.png
 Trajectory plot saved: local_search_plot_soln3.png
 
-All experiments were conducted on a computer running Windows 10 with an Intel64 Family 6 Model 61 Stepping 4, GenuineIntel processor, 8 GB RAM, using Python 3.11.2.
 
-All experiments were conducted on a computer running Windows 10 with an Intel64 Family 6 Model 165 Stepping 2, GenuineIntel processor, 17.04 GB RAM, using Python 3.9.12.
+
+
+--- RUIN & RECREATE PSO STARTED ---
+Demand Points: 10400 | Total Weight: 5,426.8680
+Total Candidates Generated: 42120
+Computing Coverage Matrix...
+Coverage Matrix Computed.
+
+--- Initializing Swarm ---
+Loading seed from: local_search_soln1.xlsx
+ >> Seed loaded and variations created.
+Evaluating initial swarm...
+Initial Global Best Z: 2,133.1740
+
+--- Starting Loop (50 Iterations) ---
+  > IMPROVEMENT at Iter 1 (P0): +4.3100 | Z: 2,137.4840
+  > IMPROVEMENT at Iter 1 (P6): +3.5660 | Z: 2,141.0500
+  > IMPROVEMENT at Iter 1 (P11): +0.3250 | Z: 2,141.3750
+  > IMPROVEMENT at Iter 1 (P28): +1.5930 | Z: 2,142.9680
+  > IMPROVEMENT at Iter 4 (P6): +2.7990 | Z: 2,145.7670
+  > IMPROVEMENT at Iter 5 (P14): +2.2830 | Z: 2,148.0500
+  Iter 5/50 | Best Z: 2,148.0500
+  > IMPROVEMENT at Iter 6 (P3): +2.4740 | Z: 2,150.5240
+  > IMPROVEMENT at Iter 7 (P27): +4.0490 | Z: 2,154.5730
+  > IMPROVEMENT at Iter 9 (P0): +3.0000 | Z: 2,157.5730
+  > IMPROVEMENT at Iter 10 (P27): +1.8100 | Z: 2,159.3830
+  Iter 10/50 | Best Z: 2,159.3830
+  > IMPROVEMENT at Iter 12 (P13): +3.8280 | Z: 2,163.2110
+  > IMPROVEMENT at Iter 14 (P0): +0.1580 | Z: 2,163.3690
+  > IMPROVEMENT at Iter 14 (P13): +3.2490 | Z: 2,166.6180
+  Iter 15/50 | Best Z: 2,166.6180
+  > IMPROVEMENT at Iter 16 (P13): +2.2620 | Z: 2,168.8800
+  > IMPROVEMENT at Iter 17 (P0): +3.8830 | Z: 2,172.7630
+  > IMPROVEMENT at Iter 18 (P27): +1.6300 | Z: 2,174.3930
+  > IMPROVEMENT at Iter 20 (P4): +2.8060 | Z: 2,177.1990
+  Iter 20/50 | Best Z: 2,177.1990
+  > IMPROVEMENT at Iter 21 (P27): +2.1270 | Z: 2,179.3260
+  > IMPROVEMENT at Iter 23 (P8): +1.3480 | Z: 2,180.6740
+  > IMPROVEMENT at Iter 24 (P8): +0.5020 | Z: 2,181.1760
+  Iter 25/50 | Best Z: 2,181.1760
+  > IMPROVEMENT at Iter 28 (P18): +1.1340 | Z: 2,182.3100
+  > IMPROVEMENT at Iter 28 (P27): +1.4070 | Z: 2,183.7170
+  Iter 30/50 | Best Z: 2,183.7170
+  > IMPROVEMENT at Iter 35 (P17): +1.6080 | Z: 2,185.3250
+  Iter 35/50 | Best Z: 2,185.3250
+  > IMPROVEMENT at Iter 39 (P17): +0.6080 | Z: 2,185.9330
+  Iter 40/50 | Best Z: 2,185.9330
+  > IMPROVEMENT at Iter 43 (P4): +0.6080 | Z: 2,186.5410
+  > IMPROVEMENT at Iter 44 (P17): +0.4170 | Z: 2,186.9580
+  > IMPROVEMENT at Iter 45 (P18): +0.6430 | Z: 2,187.6010
+  Iter 45/50 | Best Z: 2,187.6010
+  > IMPROVEMENT at Iter 48 (P17): +0.8340 | Z: 2,188.4350
+  Iter 50/50 | Best Z: 2,188.4350
+----------------------------------------
+FINAL Z (PSO):      2,188.4350 (40.33%)
+TOTAL RUN TIME:     116.18 seconds
+----------------------------------------
+Excel saved: pso_solution_soln1.xlsx
+Heatmap saved: pso_heatmap_soln1.png
+Trajectory plot saved: pso_trajectory_plot_soln1.png
+
+--- RUIN & RECREATE PSO STARTED ---
+Demand Points: 10400 | Total Weight: 5,426.8680
+Total Candidates Generated: 42120
+Computing Coverage Matrix...
+Coverage Matrix Computed.
+
+--- Initializing Swarm ---
+Loading seed from: local_search_soln2.xlsx
+ >> Seed loaded and variations created.
+Evaluating initial swarm...
+Initial Global Best Z: 2,133.8740
+
+--- Starting Loop (50 Iterations) ---
+  > IMPROVEMENT at Iter 1 (P0): +3.9690 | Z: 2,137.8430
+  > IMPROVEMENT at Iter 1 (P1): +2.3920 | Z: 2,140.2350
+  > IMPROVEMENT at Iter 1 (P11): +1.1520 | Z: 2,141.3870
+  > IMPROVEMENT at Iter 2 (P0): +3.7840 | Z: 2,145.1710
+  > IMPROVEMENT at Iter 3 (P12): +1.4990 | Z: 2,146.6700
+  > IMPROVEMENT at Iter 4 (P17): +4.4670 | Z: 2,151.1370
+  > IMPROVEMENT at Iter 5 (P15): +6.4070 | Z: 2,157.5440
+  Iter 5/50 | Best Z: 2,157.5440
+  > IMPROVEMENT at Iter 8 (P15): +5.8420 | Z: 2,163.3860
+  Iter 10/50 | Best Z: 2,163.3860
+  > IMPROVEMENT at Iter 11 (P15): +5.0450 | Z: 2,168.4310
+  > IMPROVEMENT at Iter 13 (P17): +1.7670 | Z: 2,170.1980
+  > IMPROVEMENT at Iter 13 (P25): +1.9830 | Z: 2,172.1810
+  Iter 15/50 | Best Z: 2,172.1810
+  > IMPROVEMENT at Iter 16 (P18): +1.0800 | Z: 2,173.2610
+  > IMPROVEMENT at Iter 17 (P29): +0.9330 | Z: 2,174.1940
+  > IMPROVEMENT at Iter 18 (P18): +4.8840 | Z: 2,179.0780
+  Iter 20/50 | Best Z: 2,179.0780
+  > IMPROVEMENT at Iter 21 (P17): +3.0750 | Z: 2,182.1530
+  Iter 25/50 | Best Z: 2,182.1530
+  > IMPROVEMENT at Iter 27 (P17): +0.9610 | Z: 2,183.1140
+  > IMPROVEMENT at Iter 28 (P17): +3.2260 | Z: 2,186.3400
+  > IMPROVEMENT at Iter 30 (P12): +0.3920 | Z: 2,186.7320
+  > IMPROVEMENT at Iter 30 (P29): +0.3920 | Z: 2,187.1240
+  Iter 30/50 | Best Z: 2,187.1240
+  > IMPROVEMENT at Iter 31 (P14): +0.4740 | Z: 2,187.5980
+  > IMPROVEMENT at Iter 35 (P12): +0.6080 | Z: 2,188.2060
+  > IMPROVEMENT at Iter 35 (P14): +0.3920 | Z: 2,188.5980
+  Iter 35/50 | Best Z: 2,188.5980
+  Iter 40/50 | Best Z: 2,188.5980
+  Iter 45/50 | Best Z: 2,188.5980
+  > IMPROVEMENT at Iter 50 (P2): +0.2160 | Z: 2,188.8140
+  Iter 50/50 | Best Z: 2,188.8140
+----------------------------------------
+FINAL Z (PSO):      2,188.8140 (40.33%)
+TOTAL RUN TIME:     97.53 seconds
+----------------------------------------
+Excel saved: pso_solution_soln2.xlsx
+Heatmap saved: pso_heatmap_soln2.png
+Trajectory plot saved: pso_trajectory_plot_soln2.png
+
+
+--- RUIN & RECREATE PSO STARTED ---
+Demand Points: 10400 | Total Weight: 5,426.8680
+Total Candidates Generated: 42120
+Computing Coverage Matrix...
+Coverage Matrix Computed.
+
+--- Initializing Swarm ---
+Loading seed from: local_search_soln3.xlsx
+ >> Seed loaded and variations created.
+Evaluating initial swarm...
+Initial Global Best Z: 2,127.7030
+
+--- Starting Loop (50 Iterations) ---
+  > IMPROVEMENT at Iter 1 (P0): +8.1290 | Z: 2,135.8320
+  > IMPROVEMENT at Iter 1 (P1): +2.8240 | Z: 2,138.6560
+  > IMPROVEMENT at Iter 1 (P2): +1.4910 | Z: 2,140.1470
+  > IMPROVEMENT at Iter 1 (P26): +4.9360 | Z: 2,145.0830
+  > IMPROVEMENT at Iter 4 (P18): +3.6550 | Z: 2,148.7380
+  > IMPROVEMENT at Iter 4 (P29): +2.9460 | Z: 2,151.6840
+  Iter 5/50 | Best Z: 2,151.6840
+  > IMPROVEMENT at Iter 8 (P25): +5.8120 | Z: 2,157.4960
+  > IMPROVEMENT at Iter 10 (P29): +4.2860 | Z: 2,161.7820
+  Iter 10/50 | Best Z: 2,161.7820
+  > IMPROVEMENT at Iter 11 (P29): +0.7990 | Z: 2,162.5810
+  > IMPROVEMENT at Iter 13 (P3): +0.3920 | Z: 2,162.9730
+  > IMPROVEMENT at Iter 13 (P25): +0.6080 | Z: 2,163.5810
+  > IMPROVEMENT at Iter 14 (P3): +0.2200 | Z: 2,163.8010
+  Iter 15/50 | Best Z: 2,163.8010
+  > IMPROVEMENT at Iter 16 (P11): +3.6080 | Z: 2,167.4090
+  > IMPROVEMENT at Iter 17 (P3): +2.2160 | Z: 2,169.6250
+  > IMPROVEMENT at Iter 20 (P3): +1.1210 | Z: 2,170.7460
+  > IMPROVEMENT at Iter 20 (P11): +0.4270 | Z: 2,171.1730
+  Iter 20/50 | Best Z: 2,171.1730
+  > IMPROVEMENT at Iter 21 (P25): +0.6080 | Z: 2,171.7810
+  > IMPROVEMENT at Iter 24 (P25): +1.5550 | Z: 2,173.3360
+  > IMPROVEMENT at Iter 24 (P29): +1.4480 | Z: 2,174.7840
+  Iter 25/50 | Best Z: 2,174.7840
+  > IMPROVEMENT at Iter 30 (P27): +1.3500 | Z: 2,176.1340
+  > IMPROVEMENT at Iter 30 (P28): +1.8000 | Z: 2,177.9340
+  Iter 30/50 | Best Z: 2,177.9340
+  > IMPROVEMENT at Iter 31 (P25): +1.6320 | Z: 2,179.5660
+  > IMPROVEMENT at Iter 33 (P4): +0.8760 | Z: 2,180.4420
+  > IMPROVEMENT at Iter 34 (P29): +3.6080 | Z: 2,184.0500
+  Iter 35/50 | Best Z: 2,184.0500
+  > IMPROVEMENT at Iter 36 (P29): +0.3530 | Z: 2,184.4030
+  > IMPROVEMENT at Iter 39 (P22): +1.2160 | Z: 2,185.6190
+  > IMPROVEMENT at Iter 40 (P27): +1.2510 | Z: 2,186.8700
+  > IMPROVEMENT at Iter 40 (P29): +0.3400 | Z: 2,187.2100
+  Iter 40/50 | Best Z: 2,187.2100
+  Iter 45/50 | Best Z: 2,187.2100
+  > IMPROVEMENT at Iter 48 (P1): +0.4320 | Z: 2,187.6420
+  Iter 50/50 | Best Z: 2,187.6420
+----------------------------------------
+FINAL Z (PSO):      2,187.6420 (40.31%)
+TOTAL RUN TIME:     95.56 seconds
+----------------------------------------
+Excel saved: pso_solution_soln3.xlsx
+Heatmap saved: pso_heatmap_soln3.png
+Trajectory plot saved: pso_trajectory_plot_soln3.png

@@ -8,7 +8,7 @@ from PIL import Image
 # SETTINGS
 # ==============================
 MAP_IMAGE_FILE = "kroki.jpg"
-EXCEL_FILE = "new.xlsx"
+EXCEL_FILE = "Final_Dataset_MCLP.xlsx"
 DEMAND_SHEET = "demand"
 CAMERA_SHEET = "camera"
 OUTPUT_IMAGE_FILE = "grid_locations_with_strips.png"
