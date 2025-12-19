@@ -626,3 +626,25 @@ TOTAL RUN TIME:     95.56 seconds
 Excel saved: pso_solution_soln3.xlsx
 Heatmap saved: pso_heatmap_soln3.png
 Trajectory plot saved: pso_trajectory_plot_soln3.png
+
+
+-- OPTIMAL SOLUTION --
+
+> OPTIMAL RESULT FOR 100 CAMERAS: 41.0420% Coverage (Z=2,227.29), RUNTIME: 41.66 seconds
+
+-- OPTIMALITY GAP --
+
+GREEDY CONSTRUCTION:
+SOLUTION 1: 4.39%
+SOLUTION 2: 4.56%
+SOLUTION 3: 4.85%
+
+1-SWAP LOCAL SEARCH:
+SOLUTION 1: 4.19%
+SOLUTION 2: 4.46%
+SOLUTION 3: 4.24%
+
+PSO:
+SOLUTION 1: 1.73%
+SOLUTION 2: 1.73%
+SOLUTION 3: 1.78%

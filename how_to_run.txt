@@ -8,6 +8,7 @@ in the exact order implemented in the code.
 ---------------
 Software:
 - Python 3.9 or higher
+- Gurobi Optimizer (Requires a valid license or academic license)
 
 Required Python libraries:
 - numpy
@@ -16,9 +17,10 @@ Required Python libraries:
 - scipy
 - pillow (PIL)
 - openpyxl
+- gurobipy (Gurobi interface)
 
 Install required libraries using:
-pip install numpy pandas matplotlib scipy pillow openpyxl
+pip install numpy pandas matplotlib scipy pillow openpyxl gurobipy
 
 
 2. PROJECT DIRECTORY STRUCTURE
@@ -43,21 +45,21 @@ your_project_folder/
     ├── [GREEDY OPTIMIZATION OUTPUTS - 3 RUNS]
     ├── greedy_solution_final_soln1.xlsx
     ├── greedy_heatmap_soln1.png
-    ├── greedy_growth_curve_soln1.png    <-- (New: Growth Curve)
+    ├── greedy_growth_curve_soln1.png
     ├── greedy_heatmap_gridview_soln1.png
     ├── greedy_solution_final_soln2.xlsx
     ├── greedy_heatmap_soln2.png
-    ├── greedy_growth_curve_soln2.png    <-- (New: Growth Curve)
+    ├── greedy_growth_curve_soln2.png
     ├── greedy_heatmap_gridview_soln2.png
     ├── greedy_solution_final_soln3.xlsx
     ├── greedy_heatmap_soln3.png
-    ├── greedy_growth_curve_soln3.png    <-- (New: Growth Curve)
+    ├── greedy_growth_curve_soln3.png
     ├── greedy_heatmap_gridview_soln3.png
     |
     ├── [LOCAL SEARCH IMPROVEMENT OUTPUTS]
     ├── local_search_soln1.xlsx
     ├── local_search_heatmap_soln1.png
-    ├── local_search_plot_soln1.png      <-- (New: Optimization Trajectory)
+    ├── local_search_plot_soln1.png
     ├── local_search_soln2.xlsx
     ├── local_search_heatmap_soln2.png
     ├── local_search_plot_soln2.png
@@ -65,16 +67,20 @@ your_project_folder/
     ├── local_search_heatmap_soln3.png
     ├── local_search_plot_soln3.png
     |
-    └── [PSO REFINEMENT OUTPUTS]
+    ├── [PSO REFINEMENT OUTPUTS]
     ├── pso_solution_soln1.xlsx
     ├── pso_heatmap_soln1.png
-    ├── pso_trajectory_plot_soln1.png    <-- (New: Convergence Plot)
+    ├── pso_trajectory_plot_soln1.png
     ├── pso_solution_soln2.xlsx
     ├── pso_heatmap_soln2.png
     ├── pso_trajectory_plot_soln2.png
     ├── pso_solution_soln3.xlsx
     ├── pso_heatmap_soln3.png
-    └── pso_trajectory_plot_soln3.png
+    ├── pso_trajectory_plot_soln3.png
+    |
+    └── [GUROBI EXACT OPTIMIZATION OUTPUTS]
+        ├── gurobi_optimal_solution.xlsx  <-- (New: Global Optimal Benchmark)
+        └── gurobi_optimal_heatmap.png
 
 
 3. INPUT DATA FILES
@@ -103,7 +109,7 @@ Open a terminal in the project directory and run:
 python main.py
 
 The script runs all steps sequentially.
-Execution may take several minutes depending on the hardware, as it now performs three distinct phases of optimization (Greedy -> Local Search -> PSO) for three separate solutions.
+Execution may take significant time as it performs heuristics followed by an exact Gurobi optimization.
 
 
 5. EXECUTION FLOW AND OUTPUTS
@@ -134,17 +140,16 @@ Outputs:
 - grid_heatmap.png
 
 STEP 7 – Coverage Matrix Construction
-(Internal step) Computes coverage between camera-orientation pairs and demand points for use in optimization.
+(Internal step) Computes coverage between camera-orientation pairs and demand points.
 
 --- PHASE 1: RANDOMIZED GREEDY OPTIMIZATION ---
 
 STEP 8 – Randomized Greedy (3 Independent Runs)
-Runs the Greedy algorithm 3 separate times using RCL (Restricted Candidate List) to generate distinct initial solutions.
-It generates a full solution but highlights the performance at **100 cameras**.
+Runs the Greedy algorithm 3 separate times using RCL (Restricted Candidate List).
 Outputs (for Soln 1, 2, and 3):
 - greedy_solution_final_soln{X}.xlsx
 - greedy_heatmap_soln{X}.png
-- greedy_growth_curve_soln{X}.png (Visualizes coverage growth vs number of cameras)
+- greedy_growth_curve_soln{X}.png
 
 STEP 9 – Grid View Visualization for Greedy Solutions
 Reloads the top 100 cameras from the 3 generated solutions and creates precise grid-based heatmaps.
@@ -154,32 +159,38 @@ Outputs:
 --- PHASE 2: LOCAL SEARCH (IMPROVEMENT) ---
 
 STEP 10 – Local Search Optimization (1-Swap on Top 100)
-Takes the **top 100 cameras** from the 3 greedy solutions in Step 8.
-Performs a **1-Swap Local Search**: Iteratively replaces a selected camera with an unselected one if it improves total coverage.
+Takes the **top 100 cameras** from Phase 1. Performs a **1-Swap Local Search** to improve coverage.
 Outputs (for Soln 1, 2, and 3):
 - local_search_soln{X}.xlsx
 - local_search_heatmap_soln{X}.png
-- local_search_plot_soln{X}.png (Trajectory plot showing improvement over iterations)
+- local_search_plot_soln{X}.png
 
 --- PHASE 3: PARTICLE SWARM OPTIMIZATION (REFINEMENT) ---
 
 STEP 11 – PSO with Ruin & Recreate
-Takes the 3 Local Search solutions from Step 10 and uses them to "seed" the Particle Swarm.
-Uses a **Ruin & Recreate** strategy:
-- Particle 0 is initialized with the exact Local Search solution.
-- Other particles are initialized with variations.
-- During execution, the algorithm randomly "ruins" (removes) a percentage of cameras and "recreates" (adds) new ones to escape local optima.
+Uses Phase 2 solutions to seed a Particle Swarm Optimizer with a "Ruin & Recreate" mutation strategy to escape local optima.
 Outputs (for Soln 1, 2, and 3):
-- pso_solution_soln{X}.xlsx (Final optimized list of 100 cameras)
-- pso_heatmap_soln{X}.png (Final visualization)
-- pso_trajectory_plot_soln{X}.png (Convergence plot showing global best score)
+- pso_solution_soln{X}.xlsx
+- pso_heatmap_soln{X}.png
+- pso_trajectory_plot_soln{X}.png
+
+--- PHASE 4: EXACT OPTIMIZATION (BENCHMARK) ---
+
+STEP 12 – Global Optimal Solution (Gurobi)
+Solves the exact Mixed Integer Linear Programming (MILP) formulation of the MCLP problem.
+- Uses a budget of 100 cameras.
+- Provides the mathematically optimal upper bound to compare against the heuristic results (Greedy/PSO).
+Outputs:
+- gurobi_optimal_solution.xlsx
+- gurobi_optimal_heatmap.png
 
 
 6. NOTES
 --------
-- **Pipeline Strategy**: The code uses a "Warm Start" strategy with a fixed budget of **100 cameras**.
-  1. **Greedy**: Rapidly identifies good candidate regions.
-  2. **Local Search**: Refines the specific selection of 100 cameras by swapping.
-  3. **PSO**: Uses swarm intelligence and mutation (Ruin & Recreate) to squeeze out final percentage gains.
-- **Run Time**: The "Local Search" and "PSO" phases are computationally intensive.
-- **File Dependency**: Do not rename intermediate files (e.g., local_search_soln1.xlsx) while the script is running, as Phase 3 depends on the output of Phase 2.
+- **Pipeline Strategy**: 
+  1. **Greedy**: Exploration.
+  2. **Local Search**: Exploitation.
+  3. **PSO**: Refinement.
+  4. **Gurobi**: Validation (Gold Standard).
+- **Run Time**: The heuristic phases (1-3) are computationally intensive. The Gurobi phase (4) depends on the solver's gap setting (set to 0.1%) and the complexity of the dataset.
+- **Dependencies**: Ensure Gurobi is installed and licensed. If Gurobi is not available, Phase 4 will fail, but previous steps will remain valid.
